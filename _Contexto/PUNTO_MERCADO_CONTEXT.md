@@ -445,14 +445,17 @@ Pago contra entrega — pagas cuando llegue a tu puerta 🏠
 
 ## 12. PRODUCTO ACTIVO ACTUALMENTE
 
-### Vaso Termo Digital (Touch)
-- **ID Dropi:** 104527 | **Proveedor:** Trompila (Colombia)
-- **Precio de venta:** $25.990 CLP | **Costo producto:** $4.500 CLP
-- **Costo envío promedio:** $8.000 CLP
-- **CPA techo testeo:** $5.000 CLP | **CPA objetivo ganador:** $3.000 CLP
-- **Landing:** Construida en Shopify (HTML inline)
-- **Ángulo principal:** Termos que no muestran la temperatura → frustración → solución digital
-- **Oportunidad pendiente:** Campaña seasonal con framing de regalo
+### Pistola de Masaje de Percusión (Gun Surtido)
+- **ID Dropi:** 56201 | **Proveedor:** Eliphete | **Bodega:** Santiago
+- **Precio de venta:** $27.990 CLP | **Costo producto:** $5.990 CLP
+- **Precio sugerido Dropi:** $20.000 CLP | **Costo envío promedio:** $7.750 CLP
+- **CPA techo testeo:** $5.973 CLP | **CPA objetivo ganador:** $3.000 CLP
+- **Margen neto bruto:** 14,1% | **Margen post-IVA (CPA $4.000):** -10,6%
+- **Specs reales:** 30 niveles de velocidad, 3.300 RPM, batería 2.500 mAh (8 horas), carga USB
+- **Stock disponible:** 594 unidades
+- **Landing:** Construida en Shopify (HTML inline) — GIFs pendientes de subir
+- **Ángulo principal:** Contracturas y tensión muscular post-trabajo → alivio en casa sin cita ni masajista
+- **⚠️ Verificar:** Si Eliphete es proveedor extranjero, el costo real puede ser $7.128 (Ley 21.713)
 
 ---
 
