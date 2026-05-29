@@ -1,3 +1,3 @@
 # Memory Index — Agente Costeo
 
-- [Pistola de Masaje Eliphete](product_pistola_masaje.md) — Primer costeo post-inicio de actividades; margen neto 14.1%, post-IVA negativo, CPA max $5.973
+- [Pistola de Masaje Eliphete](product_pistola_masaje.md) — Recosteo limpio IVA integrado. Precio optimo $31.990 (11.0% post-IVA unitario). Pack x2 $51.990 = 31.5%. Umbral minimo 8%.

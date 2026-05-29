@@ -55,6 +55,7 @@ Cada agente tiene un **rol único y delimitado**. Un agente no hace el trabajo d
 | **Costeo** | Calcular margen neto, CPA máximo, impacto IVA | `PUNTO_MERCADO_CONTEXT.md` §5 + `SII_TRIBUTARIO_CONTEXT.md` §6 |
 | **Landing** | Generar HTML inline para Shopify siguiendo specs técnicas | `PUNTO_MERCADO_CONTEXT.md` §6 |
 | **Copy/Anuncios** | Generar hooks, copy de anuncio y variantes de ángulo | `PUNTO_MERCADO_CONTEXT.md` §7 |
+| **Creativos** | Diseñar y exportar assets visuales en Canva (imágenes de anuncio, thumbnails, stories) | `PUNTO_MERCADO_CONTEXT.md` §7 |
 | **Campaña** | Definir estructura ABO/CBO y árbol de decisiones | `PUNTO_MERCADO_CONTEXT.md` §8 |
 | **Órdenes COD** | Redactar mensajes de confirmación WhatsApp | `PUNTO_MERCADO_CONTEXT.md` §9 |
 | **Tributario** | Resolver preguntas de IVA, boletas, PPM, régimen | `SII_TRIBUTARIO_CONTEXT.md` |
@@ -74,7 +75,8 @@ Cuando un agente entrega un veredicto positivo, **Claude debe ofrecer automátic
 | `product-research` → ✅ INVESTIGAR MÁS | Ofrecer lanzar agente `costeo` con los datos del reporte |
 | `costeo` → ✅ VIABLE o 🟡 AJUSTAR | Ofrecer lanzar agente `landing-page-builder` |
 | `landing-page-builder` → HTML entregado | Ofrecer lanzar agente `copy-ads-writer` |
-| `copy-ads-writer` → Copy entregado | Ofrecer lanzar agente `meta-ads-campaign` para estructurar campaña inicial |
+| `copy-ads-writer` → Copy entregado | Ofrecer lanzar agente `creatives-designer` para crear assets visuales en Canva |
+| `creatives-designer` → Assets exportados | Ofrecer lanzar agente `meta-ads-campaign` para estructurar campaña inicial |
 | `meta-ads-campaign` → Campaña activa con datos | Recordar evaluar resultados después de 2 días completos |
 
 ### Comportamiento esperado

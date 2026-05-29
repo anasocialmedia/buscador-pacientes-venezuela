@@ -1,0 +1,1 @@
+- [Pistola de Masaje — Campana Fase 1](project_pistola-masaje-campana.md) — ABO lanzado 2026-05-29, precio $35.990 (discrepancia con contexto), CPA max $5.485, tasa concrecion estimada 0.50
