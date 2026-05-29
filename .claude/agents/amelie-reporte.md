@@ -249,43 +249,92 @@ Ejemplos de lo que registrar:
 
 ---
 
-## GOOGLE DRIVE — Guardado Automático del Reporte
+## NOTION — Guardado Automático del Reporte
 
-**Cuándo:** Al finalizar el reporte completo, SIEMPRE guardarlo en Google Drive antes de entregarlo en el chat.
+**Cuándo:** Al finalizar el reporte completo, SIEMPRE guardarlo en Notion antes de entregarlo en el chat.
 
-Lee `_Contexto/GOOGLE_DRIVE_CONFIG.md` para obtener el ID de la carpeta destino.
-
-### Cómo guardar el reporte
-
-Usa el tool `mcp__claude_ai_Google_Drive__create_file` con estos parámetros:
+Lee `_Contexto/NOTION_CONFIG.md` para obtener el token y el ID de la página de reportes.
 
 ```
-title:                        "Reporte Punto Mercado — [Mes] [Año]"   (ej: "Reporte Punto Mercado — Mayo 2026")
-parentId:                     "1OfOL867fXFNlwhiVy6xOsda74k_P617I"
-textContent:                  [el reporte completo en markdown, exactamente como lo entregas en el chat]
-contentMimeType:              "text/plain"
-disableConversionToGoogleType: false
+NOTION_TOKEN=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
+NOTION_REPORTES_PAGE_ID=36ffc94d-b1af-8161-b997-ee91e9223a6b
 ```
 
-Dejar `disableConversionToGoogleType` en `false` convierte el archivo a Google Doc automáticamente — el usuario puede abrirlo y leerlo siempre desde Drive sin necesidad de correr el agente de nuevo.
+### Paso 1 — Crear la página del reporte en Notion
 
-### Al final del reporte, agrega siempre este bloque
+```bash
+NOTION_TOKEN="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"
+PARENT_ID="36ffc94d-b1af-8161-b997-ee91e9223a6b"
+
+RESULT=$(curl -s -X POST "https://api.notion.com/v1/pages" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"parent\": {\"page_id\": \"$PARENT_ID\"},
+    \"icon\": {\"type\": \"emoji\", \"emoji\": \"📊\"},
+    \"properties\": {
+      \"title\": {\"title\": [{\"text\": {\"content\": \"Reporte Punto Mercado — MES AÑO\"}}]}
+    },
+    \"children\": [
+      {
+        \"object\": \"block\",
+        \"type\": \"heading_2\",
+        \"heading_2\": {\"rich_text\": [{\"text\": {\"content\": \"Resumen Ejecutivo\"}}]}
+      },
+      {
+        \"object\": \"block\",
+        \"type\": \"paragraph\",
+        \"paragraph\": {\"rich_text\": [{\"text\": {\"content\": \"RESUMEN_AQUI\"}}]}
+      },
+      {
+        \"object\": \"block\",
+        \"type\": \"heading_2\",
+        \"heading_2\": {\"rich_text\": [{\"text\": {\"content\": \"Métricas Clave\"}}]}
+      },
+      {
+        \"object\": \"block\",
+        \"type\": \"code\",
+        \"code\": {
+          \"language\": \"markdown\",
+          \"rich_text\": [{\"text\": {\"content\": \"TABLA_METRICAS_AQUI\"}}]
+        }
+      },
+      {
+        \"object\": \"block\",
+        \"type\": \"heading_2\",
+        \"heading_2\": {\"rich_text\": [{\"text\": {\"content\": \"Reporte Completo\"}}]}
+      },
+      {
+        \"object\": \"block\",
+        \"type\": \"code\",
+        \"code\": {
+          \"language\": \"markdown\",
+          \"rich_text\": [{\"text\": {\"content\": \"REPORTE_COMPLETO_AQUI\"}}]
+        }
+      }
+    ]
+  }")
+
+PAGE_URL=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('url','ERROR'))")
+```
+
+**Nota:** El campo `code` con `language: markdown` preserva todo el formato de tablas y métricas. Reemplaza `REPORTE_COMPLETO_AQUI` con el texto completo del reporte escapando las comillas con `\"`.
+
+### Paso 2 — Al final del reporte, incluye siempre este bloque
 
 ```
 ---
-📁 **Reporte guardado en Google Drive**
-[Ver en Drive](URL_DEL_DOCUMENTO)
+📊 **Reporte guardado en Notion**
+[Ver reporte en Notion](URL_DE_LA_PÁGINA)
 
-Puedes acceder a este reporte en cualquier momento desde la carpeta [Reportes Mensuales](https://drive.google.com/drive/folders/1OfOL867fXFNlwhiVy6xOsda74k_P617I).
+Accede al historial completo en [Reportes Mensuales](https://www.notion.so/Reportes-Mensuales-36ffc94db1af8161b997ee91e9223a6b).
 ```
 
-### Fallback si Drive no está conectado
+### Si la API falla
 
-Si el tool `mcp__claude_ai_Google_Drive__create_file` no está disponible (MCP no autenticado), avisa al usuario:
-
-> "⚠️ Google Drive no está conectado en esta sesión. Para guardar el reporte, escribe `/mcp` y activa 'claude.ai Google Drive', luego vuelve a correr el reporte. El reporte completo está aquí abajo de todas formas."
-
-En ese caso, entrega el reporte normalmente en el chat.
+Entrega el reporte en el chat e indica:
+> "⚠️ No se pudo guardar en Notion. Copia el reporte y guárdalo manualmente en: https://www.notion.so/Reportes-Mensuales-36ffc94db1af8161b997ee91e9223a6b"
 
 # Persistent Agent Memory
 

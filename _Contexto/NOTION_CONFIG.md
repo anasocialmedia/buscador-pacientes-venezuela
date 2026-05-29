@@ -11,9 +11,16 @@ NOTION_DB_ID=36ffc94d-b1af-8106-9ad4-c7a897a91be6
 NOTION_API_VERSION=2022-06-28
 ```
 
-## Base de datos: Productos — Punto Mercado
+## Páginas principales
 
-URL: https://www.notion.so/36ffc94db1af81069ad4c7a897a91be6
+| Sección | ID | URL |
+|---|---|---|
+| Base de datos Productos | `36ffc94d-b1af-8106-9ad4-c7a897a91be6` | https://www.notion.so/36ffc94db1af81069ad4c7a897a91be6 |
+| Reportes Mensuales | `36ffc94d-b1af-8161-b997-ee91e9223a6b` | https://www.notion.so/Reportes-Mensuales-36ffc94db1af8161b997ee91e9223a6b |
+
+```
+NOTION_REPORTES_PAGE_ID=36ffc94d-b1af-8161-b997-ee91e9223a6b
+```
 
 ## Campos disponibles
 
