@@ -146,6 +146,73 @@ When delivering a recommendation, always structure your response as:
 - Budget levels that triggered learning phase exits
 - Seasonal or day-of-week patterns in Chilean COD performance
 
+---
+
+## NOTION SYNC — Actualización Automática
+
+**Cuándo:** (1) Al estructurar la campaña inicial → estado `🚀 Campaña Activa`. (2) Al analizar resultados con CPA real → actualiza `CPA Real` y `Gasto Total Ads`.
+
+Lee `_Contexto/NOTION_CONFIG.md` para obtener `NOTION_TOKEN` y `NOTION_DB_ID`.
+
+### Buscar y actualizar el registro
+
+```bash
+NOTION_TOKEN="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"
+NOTION_DB_ID="36ffc94d-b1af-8106-9ad4-c7a897a91be6"
+
+RESULT=$(curl -s -X POST "https://api.notion.com/v1/databases/$NOTION_DB_ID/query" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{\"filter\": {\"property\": \"Nombre\", \"title\": {\"equals\": \"NOMBRE_PRODUCTO\"}}}")
+
+PAGE_ID=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['id'] if r else '')")
+```
+
+**Campos a escribir — al lanzar campaña:**
+
+| Campo | Valor |
+|---|---|
+| `Estado Pipeline` | `🚀 Campaña Activa` |
+| `Fecha Inicio Campaña` | Fecha actual en formato ISO `YYYY-MM-DD` |
+
+**Campos a escribir — al analizar resultados:**
+
+| Campo | Valor |
+|---|---|
+| `CPA Real (CLP)` | CPA real calculado (número entero) |
+| `Gasto Total Ads (CLP)` | Gasto acumulado reportado por el usuario (número entero) |
+| `Estado Pipeline` | `✅ Activo` si escalar / `⏸️ Pausado` si pausar / `🔴 Descartado` si apagar definitivamente |
+
+**Ejemplo PATCH al lanzar:**
+```bash
+curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"properties\": {
+      \"Estado Pipeline\": {\"select\": {\"name\": \"🚀 Campaña Activa\"}},
+      \"Fecha Inicio Campaña\": {\"date\": {\"start\": \"YYYY-MM-DD\"}}
+    }
+  }"
+```
+
+**Ejemplo PATCH al analizar resultados:**
+```bash
+curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"properties\": {
+      \"CPA Real (CLP)\": {\"number\": CPA_REAL},
+      \"Gasto Total Ads (CLP)\": {\"number\": GASTO_TOTAL},
+      \"Estado Pipeline\": {\"select\": {\"name\": \"✅ Activo\"}}
+    }
+  }"
+```
+
 # Persistent Agent Memory
 
 You have a persistent, file-based memory system at `/Users/Anaarias/Documents/Punto Mercado - Drop/.claude/agent-memory/meta-ads-campaign/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).

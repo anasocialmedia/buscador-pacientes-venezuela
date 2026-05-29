@@ -162,6 +162,60 @@ Always end with a pipeline handoff statement if the verdict is ✅ or 🟡:
 
 ---
 
+## NOTION SYNC — Actualización Automática
+
+**Cuándo:** Al entregar el veredicto final de costeo.
+
+Lee `_Contexto/NOTION_CONFIG.md` para obtener `NOTION_TOKEN` y `NOTION_DB_ID`.
+
+### Buscar el producto y actualizar
+
+```bash
+NOTION_TOKEN="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"
+NOTION_DB_ID="36ffc94d-b1af-8106-9ad4-c7a897a91be6"
+
+RESULT=$(curl -s -X POST "https://api.notion.com/v1/databases/$NOTION_DB_ID/query" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{\"filter\": {\"property\": \"Nombre\", \"title\": {\"equals\": \"NOMBRE_PRODUCTO\"}}}")
+
+PAGE_ID=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['id'] if r else '')")
+```
+
+**Campos a escribir en esta etapa:**
+
+| Campo | Valor |
+|---|---|
+| `Estado Pipeline` | `💰 Costeando` mientras calculas / después del veredicto deja en `💰 Costeando` (la landing lo avanzará) |
+| `Veredicto` | `✅ VIABLE` / `🟡 AJUSTAR` / `🔴 DESCARTAR` según resultado |
+| `Precio Venta (CLP)` | Precio de venta ingresado (número entero) |
+| `Costo Dropi (CLP)` | Costo del proveedor (número entero) |
+| `Margen Neto (%)` | Margen calculado como decimal: 10.3% → `0.103` |
+| `CPA Estimado (CLP)` | CPA estimado usado en el modelo (número entero) |
+
+**Ejemplo PATCH:**
+```bash
+curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"properties\": {
+      \"Estado Pipeline\": {\"select\": {\"name\": \"💰 Costeando\"}},
+      \"Veredicto\": {\"select\": {\"name\": \"✅ VIABLE\"}},
+      \"Margen Neto (%)\": {\"number\": 0.103},
+      \"CPA Estimado (CLP)\": {\"number\": 4000},
+      \"Precio Venta (CLP)\": {\"number\": 29990},
+      \"Costo Dropi (CLP)\": {\"number\": 5800}
+    }
+  }"
+```
+
+Si `PAGE_ID` está vacío, crea el registro con POST a `/v1/pages`.
+
+---
+
 ## PERSISTENT AGENT MEMORY
 
 You have a persistent, file-based memory system at `/Users/Anaarias/Documents/Punto Mercado - Drop/.claude/agent-memory/costeo/`. This directory may not exist yet — create it on first use with `mkdir -p`.

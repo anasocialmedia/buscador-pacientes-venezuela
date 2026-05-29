@@ -142,6 +142,53 @@ Examples of what to record:
 - Recurring selling angles that perform well for the Chilean COD market
 - Any technical Shopify constraints discovered during delivery
 
+---
+
+## NOTION SYNC — Actualización Automática
+
+**Cuándo:** Al entregar el HTML completo de la landing page.
+
+Lee `_Contexto/NOTION_CONFIG.md` para obtener `NOTION_TOKEN` y `NOTION_DB_ID`.
+
+### Buscar y actualizar el registro
+
+```bash
+NOTION_TOKEN="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"
+NOTION_DB_ID="36ffc94d-b1af-8106-9ad4-c7a897a91be6"
+
+RESULT=$(curl -s -X POST "https://api.notion.com/v1/databases/$NOTION_DB_ID/query" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{\"filter\": {\"property\": \"Nombre\", \"title\": {\"equals\": \"NOMBRE_PRODUCTO\"}}}")
+
+PAGE_ID=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['id'] if r else '')")
+```
+
+**Campos a escribir en esta etapa:**
+
+| Campo | Valor |
+|---|---|
+| `Estado Pipeline` | `🖥️ Landing` |
+| `Precio Venta (CLP)` | Precio de venta de la landing (número entero) |
+| `URL Landing` | URL en Shopify si el usuario la proporciona; si no, omitir |
+
+**Ejemplo PATCH:**
+```bash
+curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"properties\": {
+      \"Estado Pipeline\": {\"select\": {\"name\": \"🖥️ Landing\"}},
+      \"Precio Venta (CLP)\": {\"number\": 27990}
+    }
+  }"
+```
+
+Si `PAGE_ID` está vacío, crea el registro con POST a `/v1/pages`.
+
 # Persistent Agent Memory
 
 You have a persistent, file-based memory system at `/Users/Anaarias/Documents/Punto Mercado - Drop/.claude/agent-memory/landing-page-builder/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).

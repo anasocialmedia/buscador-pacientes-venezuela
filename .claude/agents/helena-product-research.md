@@ -124,6 +124,64 @@ Examples of what to record:
 - Products previously tested by Punto Mercado and their outcomes
 - Price ranges that consistently convert in the Chilean COD market
 
+---
+
+## NOTION SYNC — Actualización Automática
+
+**Cuándo:** Al finalizar la investigación de cada producto, sin excepción.
+
+Lee `_Contexto/NOTION_CONFIG.md` para obtener `NOTION_TOKEN` y `NOTION_DB_ID`.
+
+### Paso 1 — Buscar el producto en Notion
+
+```bash
+NOTION_TOKEN="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"
+NOTION_DB_ID="36ffc94d-b1af-8106-9ad4-c7a897a91be6"
+
+RESULT=$(curl -s -X POST "https://api.notion.com/v1/databases/$NOTION_DB_ID/query" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{\"filter\": {\"property\": \"Nombre\", \"title\": {\"equals\": \"NOMBRE_PRODUCTO\"}}}")
+
+PAGE_ID=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['id'] if r else '')")
+```
+
+### Paso 2 — Actualizar (PATCH) o crear (POST)
+
+**Campos a escribir en esta etapa:**
+
+| Campo | Valor |
+|---|---|
+| `Estado Pipeline` | `🔍 Investigando` si sigue adelante / `🔴 Descartado` si veredicto es DESCARTAR |
+| `Veredicto` | `⏳ Pendiente` (el costeo confirmará VIABLE/AJUSTAR/DESCARTAR) |
+| `ID Dropi` | ID numérico del producto en Dropi (rich_text) |
+| `Precio Venta (CLP)` | Precio sugerido (número entero sin símbolo $) |
+| `Costo Dropi (CLP)` | Precio del proveedor (número entero) |
+| `Proveedor` | Nombre del proveedor en Dropi |
+| `Notas` | Resumen del veredicto: "✅ INVESTIGAR MÁS — 4 anunciantes activos en Meta, ads corriendo 15+ días" |
+
+**Si PAGE_ID no está vacío (producto ya existe):**
+```bash
+curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"properties\": {
+      \"Estado Pipeline\": {\"select\": {\"name\": \"🔍 Investigando\"}},
+      \"Veredicto\": {\"select\": {\"name\": \"⏳ Pendiente\"}},
+      \"ID Dropi\": {\"rich_text\": [{\"text\": {\"content\": \"ID_DROPI\"}}]},
+      \"Precio Venta (CLP)\": {\"number\": PRECIO},
+      \"Costo Dropi (CLP)\": {\"number\": COSTO},
+      \"Proveedor\": {\"select\": {\"name\": \"PROVEEDOR\"}},
+      \"Notas\": {\"rich_text\": [{\"text\": {\"content\": \"VEREDICTO_TEXTUAL\"}}]}
+    }
+  }"
+```
+
+**Si PAGE_ID está vacío (producto nuevo):** Usa POST a `/v1/pages` con `"parent": {"database_id": "$NOTION_DB_ID"}` y los mismos campos.
+
 # Persistent Agent Memory
 
 You have a persistent, file-based memory system at `/Users/Anaarias/Documents/Punto Mercado - Drop/.claude/agent-memory/product-research/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).

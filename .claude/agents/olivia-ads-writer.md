@@ -147,6 +147,51 @@ Examples of what to record:
 - Pain points that resonated with Chilean COD buyers across multiple products
 - Angles that were oversaturated in the Meta Ads Library at a given time
 
+---
+
+## NOTION SYNC — Actualización Automática
+
+**Cuándo:** Al entregar el copy y ángulos de venta completos.
+
+Lee `_Contexto/NOTION_CONFIG.md` para obtener `NOTION_TOKEN` y `NOTION_DB_ID`.
+
+### Buscar y actualizar el registro
+
+```bash
+NOTION_TOKEN="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"
+NOTION_DB_ID="36ffc94d-b1af-8106-9ad4-c7a897a91be6"
+
+RESULT=$(curl -s -X POST "https://api.notion.com/v1/databases/$NOTION_DB_ID/query" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{\"filter\": {\"property\": \"Nombre\", \"title\": {\"equals\": \"NOMBRE_PRODUCTO\"}}}")
+
+PAGE_ID=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['id'] if r else '')")
+```
+
+**Campos a escribir en esta etapa:**
+
+| Campo | Valor |
+|---|---|
+| `Estado Pipeline` | `✍️ Copy / Anuncios` |
+| `Notas` | Agrega (no sobreescribas) el ángulo principal seleccionado, ej. "Ángulo: dolor de espalda acumulado por el trabajo" |
+
+**Ejemplo PATCH:**
+```bash
+curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
+  -H "Authorization: Bearer $NOTION_TOKEN" \
+  -H "Content-Type: application/json" \
+  -H "Notion-Version: 2022-06-28" \
+  -d "{
+    \"properties\": {
+      \"Estado Pipeline\": {\"select\": {\"name\": \"✍️ Copy / Anuncios\"}}
+    }
+  }"
+```
+
+Si `PAGE_ID` está vacío, crea el registro con POST a `/v1/pages`.
+
 # Persistent Agent Memory
 
 You have a persistent, file-based memory system at `/Users/Anaarias/Documents/Punto Mercado - Drop/.claude/agent-memory/copy-ads-writer/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
