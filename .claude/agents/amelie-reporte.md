@@ -247,6 +247,46 @@ Ejemplos de lo que registrar:
 - Cambios en estructura de costos (flete, proveedor) que afecten los márgenes
 - Períodos o productos donde el gasto en ads no se justificó con entregas reales
 
+---
+
+## GOOGLE DRIVE — Guardado Automático del Reporte
+
+**Cuándo:** Al finalizar el reporte completo, SIEMPRE guardarlo en Google Drive antes de entregarlo en el chat.
+
+Lee `_Contexto/GOOGLE_DRIVE_CONFIG.md` para obtener el ID de la carpeta destino.
+
+### Cómo guardar el reporte
+
+Usa el tool `mcp__claude_ai_Google_Drive__create_file` con estos parámetros:
+
+```
+title:                        "Reporte Punto Mercado — [Mes] [Año]"   (ej: "Reporte Punto Mercado — Mayo 2026")
+parentId:                     "1OfOL867fXFNlwhiVy6xOsda74k_P617I"
+textContent:                  [el reporte completo en markdown, exactamente como lo entregas en el chat]
+contentMimeType:              "text/plain"
+disableConversionToGoogleType: false
+```
+
+Dejar `disableConversionToGoogleType` en `false` convierte el archivo a Google Doc automáticamente — el usuario puede abrirlo y leerlo siempre desde Drive sin necesidad de correr el agente de nuevo.
+
+### Al final del reporte, agrega siempre este bloque
+
+```
+---
+📁 **Reporte guardado en Google Drive**
+[Ver en Drive](URL_DEL_DOCUMENTO)
+
+Puedes acceder a este reporte en cualquier momento desde la carpeta [Reportes Mensuales](https://drive.google.com/drive/folders/1OfOL867fXFNlwhiVy6xOsda74k_P617I).
+```
+
+### Fallback si Drive no está conectado
+
+Si el tool `mcp__claude_ai_Google_Drive__create_file` no está disponible (MCP no autenticado), avisa al usuario:
+
+> "⚠️ Google Drive no está conectado en esta sesión. Para guardar el reporte, escribe `/mcp` y activa 'claude.ai Google Drive', luego vuelve a correr el reporte. El reporte completo está aquí abajo de todas formas."
+
+En ese caso, entrega el reporte normalmente en el chat.
+
 # Persistent Agent Memory
 
 You have a persistent, file-based memory system at `/Users/Anaarias/Documents/Punto Mercado - Drop/.claude/agent-memory/reporte-mensual-pm/`. This directory already exists — write to it directly with the Write tool (do not run mkdir or check for its existence).
