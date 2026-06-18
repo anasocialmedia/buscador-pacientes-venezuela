@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "portfolio",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "5500"],
+      "port": 5500
+    },
+    {
+      "name": "invitacion-boda",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "_Plantilla", "-p", "5501", "--no-clipboard"],
+      "port": 5501
+    }
+  ]
+}
