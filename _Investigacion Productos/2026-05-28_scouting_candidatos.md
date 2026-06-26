@@ -55,3 +55,4 @@ limpiavidrios magnético, selladora de bolsas, mini aspiradora escritorio, dispe
 
 1. Verificar en Dropi: ID, proveedor, costo, stock y cobertura de envío para los 3 candidatos.
 2. Con el costo real → llamar al **Agente de Costeo** para calcular margen neto y CPA máximo.
+11

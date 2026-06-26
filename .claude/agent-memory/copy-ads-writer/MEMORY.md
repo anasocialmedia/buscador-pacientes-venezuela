@@ -1,2 +1,3 @@
 - [Pistola de Masaje — Copy Project](project_pistola_masaje.md) — Ángulos, framework y notas del primer producto con copy completo generado
 - [Frameworks por Categoria COD Chile](feedback_frameworks_por_categoria.md) — PAS/BAB/AIDA según tipo de producto; patrones validados para cold traffic
+- [Corrector de Postura Smart — Copy Project](project_corrector_postura.md) — Ángulos para oficinistas/teletrabajadores; diferenciador: discreción y ángulo pantalla

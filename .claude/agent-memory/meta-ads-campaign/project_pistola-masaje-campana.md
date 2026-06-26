@@ -39,6 +39,38 @@ El contexto activo (§12) registra precio $27.990. El usuario indica $35.990. Si
 Usando promedios historicos: TC=0.65, TE=0.77 → tasa real ~0.50.
 CPA real = CPA Meta / 0.50. Solicitar datos Dropi reales tras los primeros dias.
 
+## IDs en Meta Ads — Estructura reestructurada (2026-05-29)
+
+- Ad Account ID: 3619468424820755
+- Campaign ID: 120242785378650424
+- Estado campana: ACTIVA (activada 2026-05-29)
+
+### Ad Set 1 — PM | Masaje | Broad 25-55 | Chile
+- Ad Set ID: 120242785404300424
+- Presupuesto diario: $5.000 CLP (500.000 centavos) — actualizado desde $8.500
+- Optimizacion: OFFSITE_CONVERSIONS / evento PURCHASE
+- Targeting: Advantage+ Audience, Chile broad, sugerencia 25-55
+- Placements: automaticos (Meta Advantage+)
+
+| Nombre | Ad ID | Estado |
+|---|---|---|
+| PM \| Pistola \| Angulo 1 - Tension Laboral | 120242785903810424 | PAUSED (activo) |
+| PM \| Pistola \| Angulo 2 - Sin Masajista | 120242786090900424 | DELETED |
+| PM \| Pistola \| Angulo 3 - Regalo | 120242786103160424 | DELETED |
+
+### Ad Set 2 — PM | Masaje | Broad 25-55 | Chile | Set 2
+- Ad Set ID: 120242786425490424
+- Presupuesto diario: $5.000 CLP (500.000 centavos)
+- Optimizacion: OFFSITE_CONVERSIONS / evento PURCHASE
+- Targeting: Advantage+ Audience, Chile broad
+- Estado: PAUSADO
+
+| Nombre | Ad ID | Estado |
+|---|---|---|
+| PM \| Pistola \| Angulo 2 - Sin Masajista | 120242786445000424 | PAUSED |
+
+Nota: ads_create_creative no habilitado para esta cuenta. Anuncios creados con object_story_spec inline via ads_create_ad. Para asociar videos, el usuario debe editar cada anuncio en Ads Manager y subir el creativo. URL de destino es placeholder: https://puntomercado.cl — actualizar a la URL real de la landing en Shopify antes de activar.
+
 ## Estado Notion
 
 - Registro: 36ffc94d-b1af-812f-8d40-ca93b8d4706f

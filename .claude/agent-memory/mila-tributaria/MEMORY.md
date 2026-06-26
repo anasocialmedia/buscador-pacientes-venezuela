@@ -1,0 +1,1 @@
+- [Facturación Electrónica SII](project_facturacion_electronica.md) — Inscripción completada junio 2026; pendiente habilitar boleta electrónica y configurar equipo

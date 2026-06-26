@@ -6,7 +6,7 @@
   <title>Matías & Anamilé — 17.08.2026</title>
   <!-- Open Graph — previsualización WhatsApp / redes -->
   <meta property="og:title" content="Matías & Anamilé — ¡Nos casamos! 💍" />
-  <meta property="og:description" content="17 de agosto, 2026 · Ceremonia civil en Vitacura. Con mucha alegría te invitamos a ser parte de este momento tan especial." />
+  <meta property="og:description" content="17 de agosto, 2026 · Aunque la distancia nos separa, queremos que estén presentes. Únete a la ceremonia en vivo por Google Meet." />
   <meta property="og:image" content="https://raw.githubusercontent.com/anasocialmedia/Boda/main/foto-novios.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -519,6 +519,81 @@
       opacity: 0.88;
     }
 
+    /* ── Google Meet ── */
+    .meet-btn {
+      display: block;
+      margin: 1.4rem auto 0.8rem;
+      padding: 12px 20px;
+      background: #3d3530;
+      color: #faf6f1;
+      border-radius: 2px;
+      text-decoration: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 300;
+      transition: background 0.2s;
+      text-align: center;
+    }
+    .meet-btn:hover { background: #5a4f47; }
+
+    .cal-btn {
+      display: block;
+      margin: 0 auto;
+      padding: 10px 20px;
+      border: 0.5px solid #c8b9a5;
+      border-radius: 2px;
+      text-decoration: none;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      font-weight: 300;
+      color: #7e7062;
+      transition: border-color 0.2s, color 0.2s;
+      text-align: center;
+    }
+    .cal-btn:hover { border-color: #a09080; color: #4a3f35; }
+
+    .meet-tip {
+      margin-top: 1.6rem;
+      padding-top: 1.4rem;
+      border-top: 0.5px solid #e8dfd4;
+      text-align: left;
+    }
+    .meet-tip-title {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #9e8f7c;
+      font-weight: 400;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+    .meet-tip-steps { display: flex; flex-direction: column; gap: 10px; }
+    .meet-tip-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.5px;
+      color: #6e6257;
+      line-height: 1.6;
+      font-weight: 300;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #f5f0e9;
+      border: 0.5px solid #c8b9a5;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      color: #9e8f7c;
+      font-weight: 400;
+    }
+    .meet-tip-step strong { color: #4a3f35; font-weight: 400; }
+
     /* ── Responsive ── */
     @media (max-width: 480px) {
       .inv-photo-names { font-size: 2rem; }
@@ -561,9 +636,10 @@
     <p class="inv-intro reveal" id="r2">¡Nos Casamos!</p>
 
     <p class="inv-request reveal" id="r3">
-      Con mucha alegría te invitamos<br>
-      a ser parte de este momento tan especial<br>
-      para nosotros
+      Nos hubiese encantado tenerte aquí con nosotros,<br>
+      pero entendemos que la distancia a veces<br>
+      nos pone a prueba. Aun así, queremos<br>
+      que estés presente en este momento tan especial.
     </p>
 
     <!-- Ceremonia -->
@@ -572,28 +648,55 @@
       <i class="ti ti-rings-wedding sec-icon" aria-hidden="true"></i>
       <div class="lbl">ceremonia civil</div>
       <div class="val"><em>Lunes 17 de agosto, 2026</em></div>
-      <div class="val" style="margin-top:5px; font-size:1.05rem;"><i class="ti ti-clock" style="font-size:14px;color:#b8935a;vertical-align:-1px;margin-right:5px;" aria-hidden="true"></i>09:45 hrs</div>
+      <div class="val" style="margin-top:5px; font-size:1.05rem;"><i class="ti ti-clock" style="font-size:14px;color:#b8935a;vertical-align:-1px;margin-right:5px;" aria-hidden="true"></i>10:00 hrs (hora Chile)</div>
     </div>
 
-    <!-- Dirección -->
-    <div class="location-row reveal" id="r5">
-      <i class="ti ti-map-pin" style="font-size:15px;color:#b8935a;flex-shrink:0;" aria-hidden="true"></i>
-      <span>Vitacura — Bicentenario 3800</span>
-    </div>
-
-    <!-- Almuerzo -->
+    <!-- Google Meet -->
     <div class="inv-block-border reveal" id="r6">
-      <i class="ti ti-tools-kitchen-2 sec-icon" aria-hidden="true"></i>
-      <div class="lbl">almuerzo de celebración</div>
-      <div class="lunch-title">¡Los esperamos para compartir juntos!</div>
+      <i class="ti ti-video sec-icon" aria-hidden="true"></i>
+      <div class="lbl">transmisión en vivo</div>
+      <div class="lunch-title">¡Acompáñanos desde donde estés!</div>
       <div class="lunch-note">
-        Después de firmar el sí, nos escaparemos un momento a capturar recuerdos. Pero luego nos gustaría poder compartir contigo un almuerzo especial.
-        <span class="lunch-time">A las 14:00 hrs</span>
-        <span class="lunch-place">¡Pronto les compartimos el lugar!</span>
+        Transmitiremos la ceremonia en vivo por Google Meet
+        para que también puedas ser parte de este día tan especial.
+        <span class="lunch-time" style="margin-top:16px; font-size:1.05rem; color:#4a3f35; letter-spacing:0.03em;">
+          Lunes 17 de agosto · 10:00 hrs (Chile)
+        </span>
+      </div>
+
+      <!-- Botón Meet -->
+      <a href="https://meet.google.com/dts-dwcv-tbd" target="_blank" class="meet-btn">
+        <i class="ti ti-brand-google-meet" style="font-size:17px; vertical-align:-2px; margin-right:8px;"></i>
+        Unirse a Google Meet
+      </a>
+
+      <!-- Agregar al calendario -->
+      <a href="https://calendar.google.com/calendar/event?action=TEMPLATE&tmeid=NHVkNHV1aWprY25zZGZ0djR1djc5cWY3NzMgYW5hc29jaWFsbWVkaWFtQG0&tmsrc=anasocialmediam%40gmail.com" target="_blank" class="cal-btn">
+        <i class="ti ti-calendar-plus" style="font-size:14px; vertical-align:-1px; margin-right:6px;"></i>
+        Agregar a mi calendario
+      </a>
+
+      <!-- Tutorial pantalla completa -->
+      <div class="meet-tip">
+        <div class="meet-tip-title">¿Cómo ver en pantalla completa?</div>
+        <div class="meet-tip-steps">
+          <div class="meet-tip-step">
+            <span class="step-num">1</span>
+            <span>Abre el link de Meet en tu teléfono o computador</span>
+          </div>
+          <div class="meet-tip-step">
+            <span class="step-num">2</span>
+            <span>Una vez dentro, toca los <strong>tres puntos</strong> ⋮ del menú</span>
+          </div>
+          <div class="meet-tip-step">
+            <span class="step-num">3</span>
+            <span>Selecciona <strong>"Ajustar vista"</strong> → <strong>"En foco"</strong></span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Grid fecha / lugar -->
+    <!-- Grid fecha -->
     <div class="detail-grid reveal" id="r7">
       <div class="detail-cell">
         <div class="lbl">fecha</div>
@@ -601,8 +704,8 @@
       </div>
       <div class="divider-v"></div>
       <div class="detail-cell">
-        <div class="lbl">lugar</div>
-        <div class="val">Vitacura</div>
+        <div class="lbl">hora</div>
+        <div class="val">10:00 hrs</div>
       </div>
     </div>
 
@@ -630,40 +733,16 @@
     </div>
   </div>
 
-  <!-- RSVP -->
+  <!-- Mensaje cierre -->
   <div class="inv-body">
-    <div class="rsvp-wrap reveal" id="r10">
+    <div class="inv-block-border reveal" id="r10" style="text-align:center;">
       <i class="ti ti-heart sec-icon" aria-hidden="true"></i>
-      <div class="rsvp-title">¿Nos acompañas? Confírmanos tu asistencia</div>
-      <form id="rsvpForm">
-        <label class="rsvp-label">Nombre completo</label>
-        <input class="rsvp-input" type="text" name="nombre" placeholder="Tu nombre" required />
-
-        <label class="rsvp-label">Correo electrónico</label>
-        <input class="rsvp-input" type="email" name="email" placeholder="tu@correo.com" />
-
-        <label class="rsvp-label">Asistiré a</label>
-        <div class="rsvp-radio-group">
-          <label class="rsvp-radio-opt">
-            <input type="radio" name="asistencia" value="Ceremonia y almuerzo" required />
-            Ceremonia y almuerzo
-          </label>
-          <label class="rsvp-radio-opt">
-            <input type="radio" name="asistencia" value="Solo la ceremonia" />
-            Solo la ceremonia
-          </label>
-          <label class="rsvp-radio-opt">
-            <input type="radio" name="asistencia" value="Solo el almuerzo" />
-            Solo el almuerzo
-          </label>
-        </div>
-
-        <label class="rsvp-label">Alergias o restricciones alimentarias</label>
-        <textarea class="rsvp-textarea" name="alergias" placeholder="Ej: sin gluten, vegetariano… (deja en blanco si no aplica)"></textarea>
-
-        <button class="rsvp-btn" type="submit" id="rsvpBtn">Confirmar asistencia</button>
-        <div class="rsvp-msg" id="rsvpMsg"></div>
-      </form>
+      <div class="lunch-title">Con todo nuestro amor</div>
+      <div class="lunch-note">
+        La distancia no puede separar lo que el corazón une.<br>
+        Gracias por estar siempre presentes, sin importar dónde estén.
+        <span class="lunch-time" style="margin-top:14px;">Matías &amp; Anamilé</span>
+      </div>
     </div>
   </div>
 
@@ -748,52 +827,7 @@
   const calDay = document.getElementById('calDay17');
   if (calDay) calObs.observe(calDay);
 
-  /* ── Formulario RSVP → Google Sheets ── */
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzt1QlPuesCZUkNzMVKoX66ieC0Kf79YSgV3SFVBzEugflHXF2L7jYJbv3XO4dZzSw-/exec';
 
-  document.getElementById('rsvpForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const btn = document.getElementById('rsvpBtn');
-    const msg = document.getElementById('rsvpMsg');
-    const data = new FormData(this);
-
-    if (!data.get('asistencia')) {
-      msg.textContent = 'Por favor selecciona a qué evento asistirás.';
-      msg.className = 'rsvp-msg err';
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'Enviando…';
-    msg.textContent = '';
-    msg.className = 'rsvp-msg';
-
-    const payload = {
-      nombre: data.get('nombre'),
-      email: data.get('email') || '—',
-      asistencia: data.get('asistencia'),
-      alergias: data.get('alergias') || '—',
-      fecha: new Date().toLocaleString('es-CL')
-    };
-
-    try {
-      await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      msg.textContent = '¡Gracias! Tu confirmación fue recibida con mucho cariño ✦';
-      msg.className = 'rsvp-msg ok';
-      this.reset();
-    } catch {
-      msg.textContent = 'Hubo un problema al enviar. Intenta de nuevo.';
-      msg.className = 'rsvp-msg err';
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Confirmar asistencia';
-    }
-  });
 </script>
 
 </body>

@@ -1,1 +1,2 @@
 - [Pistola de Masaje — Campana Fase 1](project_pistola-masaje-campana.md) — ABO lanzado 2026-05-29, precio $35.990 (discrepancia con contexto), CPA max $5.485, tasa concrecion estimada 0.50
+- [Corrector de Postura Smart — Campana Fase 1](project_corrector-postura-campana.md) — ABO creado 2026-06-01, Campaign ID 120242984875300424, ad sets pendientes por pixel ID desconocido

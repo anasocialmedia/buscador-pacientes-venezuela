@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Reloj Notion</title>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: transparent;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .clock-card {
+      background: #8A9DC0;
+      border-radius: 28px;
+      padding: 2.5rem 3rem 2rem;
+      width: 340px;
+      font-family: 'Space Grotesk', sans-serif;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .clock-label {
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      color: #dce8f5;
+      text-transform: uppercase;
+      margin-bottom: 0.6rem;
+    }
+    .clock-time {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0.25rem 0 0.75rem;
+    }
+    .clock-block {
+      background: #C8DCF0;
+      border-radius: 14px;
+      width: 90px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .clock-block span {
+      font-size: 52px;
+      font-weight: 700;
+      color: #2a4a6e;
+      line-height: 1;
+      letter-spacing: -2px;
+      display: block;
+      text-align: center;
+      width: 100%;
+    }
+    .clock-sep {
+      font-size: 44px;
+      font-weight: 700;
+      color: #e8f0f9;
+      margin: 0 8px;
+      padding-bottom: 4px;
+      line-height: 1;
+    }
+    .clock-sec-block {
+      background: #a8c2e0;
+      border-radius: 10px;
+      width: 52px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 2px;
+    }
+    .clock-sec-block span {
+      font-size: 24px;
+      font-weight: 600;
+      color: #2a4a6e;
+      line-height: 1;
+      display: block;
+      text-align: center;
+      width: 100%;
+    }
+    .divider {
+      width: 40px;
+      height: 2px;
+      background: #c8d7ec;
+      opacity: 0.4;
+      border-radius: 2px;
+      margin: 1rem auto;
+    }
+    .clock-date {
+      font-size: 15px;
+      font-weight: 500;
+      color: #e8f0f9;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+    .clock-day {
+      font-size: 12px;
+      font-weight: 400;
+      color: #c8d7ec;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="clock-card">
+
+    <svg style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;" viewBox="0 0 340 420" xmlns="http://www.w3.org/2000/svg">
+      <g opacity="0.22" stroke="#e8f0f9" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M28 28 C28 22, 20 18, 15 23 C10 18, 2 22, 2 28 C2 36, 15 44, 15 44 C15 44, 28 36, 28 28 Z"/>
+        <line x1="38" y1="15" x2="38" y2="21"/><line x1="35" y1="18" x2="41" y2="18"/>
+        <path d="M316 22 C316 14, 305 10, 299 16 C293 10, 282 14, 282 22 C282 32, 299 44, 299 44 C299 44, 316 32, 316 22 Z"/>
+        <line x1="325" y1="50" x2="325" y2="58"/><line x1="321" y1="54" x2="329" y2="54"/>
+        <path d="M22 370 C22 364, 14 360, 9 365 C4 360, -4 364, -4 370 C-4 378, 9 386, 9 386 C9 386, 22 378, 22 370 Z"/>
+        <circle cx="36" cy="390" r="5"/>
+        <path d="M338 360 C338 354, 330 350, 325 355 C320 350, 312 354, 312 360 C312 368, 325 376, 325 376 C325 376, 338 368, 338 360 Z"/>
+        <path d="M18 200 C18 195, 12 192, 9 196 C6 192, 0 195, 0 200 C0 206, 9 212, 9 212 C9 212, 18 206, 18 200 Z"/>
+        <path d="M342 190 C342 184, 334 180, 330 185 C326 180, 318 184, 318 190 C318 198, 330 205, 330 205 C330 205, 342 198, 342 190 Z"/>
+        <line x1="55" y1="390" x2="55" y2="398"/><line x1="51" y1="394" x2="59" y2="394"/>
+        <line x1="290" y1="385" x2="290" y2="391"/><line x1="287" y1="388" x2="293" y2="388"/>
+        <line x1="10" y1="100" x2="10" y2="108"/><line x1="6" y1="104" x2="14" y2="104"/>
+        <line x1="330" y1="110" x2="330" y2="116"/><line x1="327" y1="113" x2="333" y2="113"/>
+        <circle cx="310" cy="400" r="4"/>
+        <circle cx="30" cy="310" r="3.5"/>
+      </g>
+    </svg>
+
+    <div class="clock-label">Hora actual</div>
+    <div class="clock-time">
+      <div class="clock-block"><span id="hh">00</span></div>
+      <div class="clock-sep">:</div>
+      <div class="clock-block"><span id="mm">00</span></div>
+      <div style="display:flex;flex-direction:column;justify-content:flex-end;margin-left:8px;margin-bottom:6px;">
+        <div class="clock-sec-block"><span id="ss">00</span></div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="clock-date" id="fecha">—</div>
+    <div class="clock-day" id="diaSemana">—</div>
+
+  </div>
+
+  <script>
+    const DIAS = ['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+    function pad(n){ return String(n).padStart(2,'0'); }
+    function tick(){
+      const now = new Date();
+      document.getElementById('hh').textContent = pad(now.getHours());
+      document.getElementById('mm').textContent = pad(now.getMinutes());
+      document.getElementById('ss').textContent = pad(now.getSeconds());
+      document.getElementById('fecha').textContent = now.getDate() + ' de ' + MESES[now.getMonth()] + ' · ' + now.getFullYear();
+      document.getElementById('diaSemana').textContent = DIAS[now.getDay()];
+    }
+    tick();
+    setInterval(tick, 1000);
+  </script>
+</body>
+</html>

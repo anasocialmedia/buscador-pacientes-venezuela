@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ana Arias — Community & Content Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --cream:   #F4EEE2;
+      --cream2:  #EDE6D6;
+      --lavender:#9B96F5;
+      --lime:    #CCFC50;
+      --purple:  #7C6FF7;
+      --dark:    #141414;
+      --mid:     #3A3A3A;
+      --gray:    #777;
+      --border:  #D8D0C0;
+      --white:   #FAFAFA;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--cream);
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 4rem;
+      background: var(--lavender);
+    }
+    .nav-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 900;
+      color: var(--dark);
+      text-decoration: none; letter-spacing: -0.02em;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--dark); text-decoration: none; opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .nav-links a:hover { opacity: 1; }
+    /* ─── HERO ─── */
+    #inicio {
+      min-height: 100vh;
+      display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 8rem 4rem 4rem;
+      gap: 4rem;
+    }
+    .hero-text { max-width: 560px; }
+    .hero-tag {
+      display: inline-block;
+      font-size: 0.72rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--dark);
+      border: 2px solid var(--dark);
+      padding: 0.35rem 1rem; border-radius: 100px;
+      margin-bottom: 2rem;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3.2rem, 5.5vw, 5rem);
+      font-weight: 900; line-height: 1.0; letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+    .hero-title em { font-style: italic; color: var(--purple); }
+    .hero-subtitle {
+      font-size: 1rem; line-height: 1.75;
+      color: var(--mid); margin-bottom: 2.5rem; max-width: 440px;
+    }
+    .btns { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: var(--dark); color: var(--white);
+      font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      text-decoration: none; padding: 0.9rem 1.8rem;
+      border-radius: 4px; border: 2px solid var(--dark);
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+      cursor: pointer;
+    }
+    .btn:hover { background: transparent; color: var(--dark); transform: translateY(-1px); }
+    .btn-outline {
+      background: transparent; color: var(--dark);
+      border: 2px solid var(--dark);
+    }
+    .btn-outline:hover { background: var(--dark); color: var(--white); }
+    /* Hero image */
+    .hero-image { display: flex; justify-content: center; align-items: center; position: relative; }
+    /* Big repeating background text */
+    .hero-bg-grid {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; overflow: hidden;
+      opacity: 1; pointer-events: none; user-select: none;
+      z-index: 0;
+    }
+    .hero-bg-row {
+      font-family: 'Playfair Display', serif;
+      font-size: 5.5rem; font-weight: 900;
+      color: transparent; -webkit-text-stroke: 1.5px var(--border);
+      white-space: nowrap; line-height: 1;
+      letter-spacing: -0.02em;
+    }
+    .hero-bg-row:nth-child(even) { transform: translateX(-30px); }
+    .hero-photo-wrap { position: relative; z-index: 1; }
+    .hero-photo-frame {
+      width: 380px; height: 480px;
+      border-radius: 200px 200px 0 0;
+      overflow: hidden;
+      border: 4px solid var(--lime);
+      background: var(--cream2);
+      position: relative;
+    }
+    .hero-photo-frame img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center top;
+    }
+    /* ─── TICKER ─── */
+    .ticker {
+      background: var(--purple); color: var(--white);
+      padding: 0.85rem 0; overflow: hidden; white-space: nowrap;
+    }
+    .ticker.lime { background: var(--lime); color: var(--dark); }
+    .ticker-inner { display: inline-flex; animation: ticker 28s linear infinite; }
+    .ticker.lime .ticker-inner { animation-direction: reverse; }
+    .ticker-item {
+      font-size: 0.78rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0 2.5rem;
+    }
+    .ticker-item::after { content: '✦'; margin-left: 2.5rem; }
+    @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+    /* ─── SECTIONS ─── */
+    section { padding: 7rem 4rem; }
+    .section-label {
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--purple); margin-bottom: 1.2rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.2rem, 3.5vw, 3.2rem);
+      font-weight: 700; line-height: 1.1; letter-spacing: -0.02em;
+      margin-bottom: 2rem;
+    }
+    .section-title em { font-style: italic; color: var(--purple); }
+    /* ─── SOBRE MÍ ─── */
+    #sobre-mi {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 6rem; align-items: start;
+      border-top: 2px solid var(--dark);
+      background: var(--cream2);
+    }
+    .sobre-text p {
+      font-size: 0.97rem; line-height: 1.85;
+      color: var(--mid); margin-bottom: 1.2rem;
+    }
+    .sobre-text p strong { color: var(--dark); }
+    .sobre-chips { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 2rem; }
+    .chip {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+      padding: 0.4rem 1rem; border: 1.5px solid var(--dark);
+      border-radius: 100px; color: var(--dark);
+    }
+    .sobre-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 2rem; }
+    .stat-box {
+      border: 1.5px solid var(--border); border-radius: 10px;
+      padding: 1.5rem; background: var(--cream);
+    }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem; font-weight: 900; color: var(--purple);
+      line-height: 1; margin-bottom: 0.4rem;
+    }
+    .stat-label { font-size: 0.78rem; color: var(--gray); line-height: 1.4; }
+    /* ─── CASOS ─── */
+    #casos { border-top: 2px solid var(--dark); }
+    .casos-intro { max-width: 560px; margin-bottom: 4rem; }
+    /* Accordion cards */
+    .caso-card {
+      border: 1.5px solid var(--dark); border-radius: 12px;
+      overflow: hidden; background: var(--white);
+      margin-bottom: 1.2rem; transition: border-color 0.25s;
+    }
+    .caso-card:hover { border-color: var(--purple); }
+    .caso-header {
+      display: grid; grid-template-columns: 1fr auto;
+      align-items: center; padding: 2.2rem 2.5rem;
+      cursor: pointer; gap: 2rem;
+      user-select: none;
+    }
+    .caso-industry {
+      font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--purple); margin-bottom: 0.4rem;
+    }
+    .caso-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;
+    }
+    .caso-desc { font-size: 0.88rem; color: var(--gray); }
+    /* CTA hint visible always */
+    .caso-cta-hint {
+      display: flex; align-items: center; gap: 0.6rem;
+      margin-top: 0.9rem;
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--purple);
+      transition: gap 0.2s;
+    }
+    .caso-cta-hint .arrow {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 26px; height: 26px;
+      border-radius: 50%; border: 1.5px solid var(--purple);
+      font-size: 0.85rem; transition: transform 0.3s, background 0.2s, color 0.2s;
+    }
+    .caso-card.open .caso-cta-hint .arrow {
+      transform: rotate(180deg);
+      background: var(--purple); color: white;
+    }
+    .caso-card:hover .caso-cta-hint { gap: 0.9rem; }
+    .caso-body {
+      display: none;
+      border-top: 1.5px solid var(--border);
+      padding: 2.5rem 2.5rem 3rem;
+      animation: fadeIn 0.25s ease;
+    }
+    .caso-card.open .caso-body { display: block; }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:none; } }
+    .caso-body-inner {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+    }
+    .caso-section-title {
+      font-size: 0.68rem; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--purple); margin-bottom: 0.8rem;
+    }
+    .caso-text {
+      font-size: 0.9rem; line-height: 1.8; color: var(--mid); margin-bottom: 1.5rem;
+    }
+    .caso-text strong { color: var(--dark); }
+    .caso-text em { color: var(--purple); font-style: normal; font-weight: 600; }
+    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+    .metric {
+      background: var(--cream2); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 1.1rem 1.2rem;
+    }
+    .metric-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem; font-weight: 900; color: var(--purple);
+      line-height: 1; margin-bottom: 0.3rem;
+    }
+    .metric-label { font-size: 0.72rem; color: var(--gray); line-height: 1.4; }
+    /* Gary timeline table */
+    .timeline { margin-top: 0.5rem; display: grid; gap: 0.6rem; }
+    .timeline-row {
+      display: grid; grid-template-columns: 70px 1fr 1fr;
+      gap: 0.8rem; align-items: center;
+      padding: 0.8rem 1rem; border-radius: 6px;
+      border: 1.5px solid var(--border); font-size: 0.82rem;
+      background: var(--cream);
+    }
+    .timeline-row.highlight {
+      border-color: var(--purple);
+      background: rgba(155, 150, 245, 0.08);
+    }
+    .timeline-year { font-weight: 900; color: var(--purple); font-family: 'Playfair Display', serif; }
+    .timeline-reservas { color: var(--dark); font-weight: 600; }
+    .timeline-ventas { color: var(--gray); font-size: 0.78rem; }
+    .divider { border: none; border-top: 1.5px solid var(--border); margin: 2.5rem 0; }
+    /* ─── SERVICIOS ─── */
+    #servicios { border-top: 2px solid var(--dark); background: var(--cream2); }
+    .servicios-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 4rem; }
+    .servicio-card {
+      border: 1.5px solid var(--dark); border-radius: 12px;
+      padding: 2.5rem; background: var(--cream);
+      transition: background 0.25s, border-color 0.25s;
+    }
+    .servicio-card:hover { background: var(--lavender); border-color: var(--lavender); }
+    .servicio-icon { font-size: 2rem; margin-bottom: 1.5rem; }
+    .servicio-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem;
+    }
+    .servicio-desc { font-size: 0.86rem; line-height: 1.75; color: var(--mid); }
+    .servicio-tags { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.5rem; }
+    .servicio-tag {
+      font-size: 0.68rem; font-weight: 700; letter-spacing: 0.06em;
+      padding: 0.25rem 0.7rem; border: 1.5px solid var(--border);
+      border-radius: 100px; color: var(--mid); text-transform: uppercase;
+    }
+    /* ─── CONTACTO ─── */
+    #contacto {
+      border-top: 2px solid var(--dark);
+      max-width: 640px;
+    }
+    .contact-tagline {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 3vw, 3rem);
+      font-weight: 900; line-height: 1.15; margin-bottom: 1.2rem;
+    }
+    .contact-tagline em { font-style: italic; color: var(--purple); }
+    .contact-sub { font-size: 0.95rem; line-height: 1.75; color: var(--mid); margin-bottom: 2.5rem; }
+    .contact-links { display: flex; flex-direction: column; gap: 0.8rem; }
+    .contact-link {
+      display: flex; align-items: center; gap: 1rem;
+      text-decoration: none; color: var(--mid); font-size: 0.9rem;
+      padding: 1rem 1.4rem; border: 1.5px solid var(--border);
+      border-radius: 8px; background: var(--cream2);
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .contact-link:hover { border-color: var(--purple); color: var(--purple); }
+    .contact-icon {
+      width: 34px; height: 34px; border-radius: 50%;
+      background: var(--cream); border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.95rem; flex-shrink: 0;
+    }
+    /* ─── FOOTER ─── */
+    footer {
+      background: var(--dark); color: var(--white);
+      padding: 2rem 4rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem; font-weight: 900; color: var(--lime);
+    }
+    .footer-copy { font-size: 0.78rem; color: #888; }
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { gap: 1.2rem; }
+      #inicio { grid-template-columns: 1fr; padding: 7rem 1.5rem 4rem; }
+      .hero-image { display: none; }
+      section { padding: 5rem 1.5rem; }
+      #sobre-mi, .servicios-grid { grid-template-columns: 1fr; gap: 3rem; }
+      .caso-header { padding: 1.5rem; }
+      .caso-body { padding: 0 1.5rem 2rem; }
+      .caso-body-inner { grid-template-columns: 1fr; gap: 2rem; }
+      footer { flex-direction: column; gap: 0.8rem; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAV -->
+  <nav>
+    <a href="#inicio" class="nav-logo">Ana Arias</a>
+    <ul class="nav-links">
+      <li><a href="#inicio">Inicio</a></li>
+      <li><a href="#sobre-mi">Sobre mí</a></li>
+      <li><a href="#casos">Casos</a></li>
+      <li><a href="#servicios">Servicios</a></li>
+      <li><a href="#contacto">Contacto</a></li>
+    </ul>
+  </nav>
+  <!-- HERO -->
+  <section id="inicio">
+    <div class="hero-text">
+      <span class="hero-tag">Community & Content Manager</span>
+      <h1 class="hero-title">
+        Del<br>
+        contenido<br>
+        a los <em>resultados.</em>
+      </h1>
+      <p class="hero-subtitle">
+        Gestiono comunidades, diseño estrategias de contenido y administro pauta en Meta. Convierto presencia digital en crecimiento real y medible.
+      </p>
+      <div class="btns">
+        <a href="#casos" class="btn">Ver casos de éxito ↓</a>
+        <a href="#contacto" class="btn btn-outline">¡Trabajemos juntos!</a>
+      </div>
+    </div>
+    <div class="hero-image">
+      <div class="hero-bg-grid">
+        <div class="hero-bg-row">ANA ANA ANA ANA</div>
+        <div class="hero-bg-row">ARIAS ARIAS ARIAS</div>
+        <div class="hero-bg-row">ANA ANA ANA ANA</div>
+        <div class="hero-bg-row">ARIAS ARIAS ARIAS</div>
+        <div class="hero-bg-row">ANA ANA ANA ANA</div>
+        <div class="hero-bg-row">ARIAS ARIAS ARIAS</div>
+      </div>
+      <div class="hero-photo-wrap">
+        <div class="hero-photo-frame">
+          <img src="ana_photo.jpg" alt="Ana Arias" />
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- TICKER 1 -->
+  <div class="ticker">
+    <div class="ticker-inner">
+      <span class="ticker-item">Community Management</span>
+      <span class="ticker-item">Content Strategy</span>
+      <span class="ticker-item">Meta Ads</span>
+      <span class="ticker-item">Storytelling</span>
+      <span class="ticker-item">Calendarios Editoriales</span>
+      <span class="ticker-item">Gestión de comunidades</span>
+      <span class="ticker-item">Pauta Digital</span>
+      <span class="ticker-item">Análisis de métricas</span>
+      <span class="ticker-item">Community Management</span>
+      <span class="ticker-item">Content Strategy</span>
+      <span class="ticker-item">Meta Ads</span>
+      <span class="ticker-item">Storytelling</span>
+      <span class="ticker-item">Calendarios Editoriales</span>
+      <span class="ticker-item">Gestión de comunidades</span>
+      <span class="ticker-item">Pauta Digital</span>
+      <span class="ticker-item">Análisis de métricas</span>
+    </div>
+  </div>
+  <!-- SOBRE MÍ -->
+  <section id="sobre-mi">
+    <div>
+      <p class="section-label">Sobre mí</p>
+      <h2 class="section-title">Estrategia con <em>propósito</em></h2>
+      <div class="sobre-text">
+        <p>Soy <strong>Ana Arias</strong>, Community & Content Manager con experiencia en gestión orgánica de redes sociales, estrategia de contenidos y administración de campañas en Meta Ads.</p>
+        <p>Me especializo en marcas que quieren crecer sin perder su identidad. Construyo comunidades reales, genero contenido que conecta y optimizo la pauta para que cada peso invertido trabaje mejor.</p>
+        <p>Trabajo con datos, pero pienso en personas. Porque detrás de cada métrica hay alguien que decidió confiar en tu marca.</p>
+      </div>
+      <div class="sobre-chips">
+        <span class="chip">Instagram</span>
+        <span class="chip">Facebook</span>
+        <span class="chip">Meta Ads</span>
+        <span class="chip">Canva</span>
+        <span class="chip">Calendarios editoriales</span>
+        <span class="chip">Copywriting</span>
+        <span class="chip">Gestión de comunidades</span>
+        <span class="chip">Análisis de métricas</span>
+      </div>
+    </div>
+    <div>
+      <div class="sobre-stats">
+        <div class="stat-box">
+          <div class="stat-number">3+</div>
+          <div class="stat-label">años gestionando comunidades y campañas</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">3</div>
+          <div class="stat-label">verticales: salud, moda nupcial, belleza</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">4.5M</div>
+          <div class="stat-label">impresiones generadas en Meta Ads</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number">-63%</div>
+          <div class="stat-label">reducción en costo por contacto en Meta</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- CASOS -->
+  <section id="casos">
+    <div class="casos-intro">
+      <p class="section-label">Casos de éxito</p>
+      <h2 class="section-title">Trabajo real,<br>resultados <em>medibles.</em></h2>
+      <p style="font-size:0.9rem;color:var(--gray);line-height:1.7;">Haz clic en cada caso para ver la estrategia, el proceso y los resultados.</p>
+    </div>
+    <!-- ─── CASO 1: ONG ─── -->
+    <div class="caso-card" id="caso-ong">
+      <div class="caso-header" onclick="toggleCaso('caso-ong')">
+        <div>
+          <div class="caso-industry">ONG · Sector salud / infancia · Chile</div>
+          <div class="caso-title">Gestión Orgánica de Redes Sociales</div>
+          <div class="caso-desc">Construir una comunidad digital con impacto social real — sin pauta, solo contenido estratégico.</div>
+          <div class="caso-cta-hint">
+            <span class="arrow">↓</span>
+            <span>Ver estrategia y resultados</span>
+          </div>
+        </div>
+      </div>
+      <div class="caso-body">
+        <div class="caso-body-inner">
+          <div>
+            <p class="caso-section-title">El desafío</p>
+            <p class="caso-text">
+              Fundación Nuestros Hijos es una ONG del sector salud e infancia que necesitaba <strong>comunicar su impacto de manera coherente y consistente</strong> en redes sociales, conectar con su comunidad de donantes y voluntarios, y construir confianza — todo sin inversión publicitaria.
+            </p>
+            <p class="caso-section-title">Mi rol</p>
+            <p class="caso-text">
+              Fui parte del equipo de Aida Digital Marketing a cargo de la cuenta: coordiné con la diseñadora motion graphic, el equipo creativo y el community manager para asegurar la coherencia de mensajes en todos los canales. Elaboré el calendario editorial, la estrategia de contenidos y los reportes de métricas presentados directamente a la fundación. Todo 100% orgánico.
+            </p>
+            <p class="caso-section-title">Enfoque</p>
+            <p class="caso-text">
+              Contenido centrado en <em>storytelling de impacto</em>: historias reales de la fundación, educación sobre su causa y llamados a la acción concretos. El objetivo no era solo alcance — era <strong>convertir seguidores en donantes y voluntarios activos</strong>.
+            </p>
+          </div>
+          <div>
+            <p class="caso-section-title">Resultados (año a año)</p>
+            <div class="metrics-grid">
+              <div class="metric">
+                <div class="metric-value">+146%</div>
+                <div class="metric-label">crecimiento de alcance orgánico YoY</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">+198%</div>
+                <div class="metric-label">aumento en interacciones YoY</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">+13.109</div>
+                <div class="metric-label">nuevos seguidores conseguidos</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">5.70%</div>
+                <div class="metric-label">engagement en Instagram durante campañas</div>
+              </div>
+            </div>
+            <hr class="divider" />
+            <p class="caso-section-title">Aprendizaje clave</p>
+            <p class="caso-text">
+              En organizaciones sin fines de lucro, <strong>la autenticidad supera al algoritmo</strong>. El contenido que más conectó fue el que mostraba el impacto real de la fundación — no el que seguía tendencias.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ─── CASO 2: MIKA HERRERA ─── -->
+    <div class="caso-card" id="caso-mika">
+      <div class="caso-header" onclick="toggleCaso('caso-mika')">
+        <div>
+          <div class="caso-industry">Moda nupcial · Santiago y Londres</div>
+          <div class="caso-title">Marca de Moda Nupcial</div>
+          <div class="caso-desc">Estrategia de contenidos y Meta Ads para una diseñadora de vestidos de novia — construyendo deseo antes de la venta.</div>
+          <div class="caso-cta-hint">
+            <span class="arrow">↓</span>
+            <span>Ver estrategia y resultados</span>
+          </div>
+        </div>
+      </div>
+      <div class="caso-body">
+        <div class="caso-body-inner">
+          <div>
+            <p class="caso-section-title">El desafío</p>
+            <p class="caso-text">
+              Una diseñadora de vestidos de novia de alta confección. Su producto es <strong>emocional, aspiracional y de ciclo largo</strong> — las novias investigan durante meses antes de hacer contacto. La oportunidad era posicionar su trabajo en redes con una voz propia y llevar tráfico cualificado a su sitio web.
+            </p>
+            <p class="caso-section-title">Mi rol</p>
+            <p class="caso-text">
+              Gestioné de forma integral las redes sociales de la marca: definí el calendario editorial, produje los contenidos y moderé la comunidad. Además, rediseñé el sitio web para mejorar la experiencia de usuario y la coherencia de la identidad visual, y gestioné campañas de <strong>Meta Ads y Google Ads</strong>.
+            </p>
+            <p class="caso-section-title">Enfoque</p>
+            <p class="caso-text">
+              Storytelling de proceso: el <em>detrás de escena</em> de la confección, la personalidad de Mika como diseñadora y los momentos emocionales de cada entrega. Contenido que <strong>construye confianza y autoridad</strong> en un mercado aspiracional donde la conexión personal lo es todo.
+            </p>
+          </div>
+          <div>
+            <p class="caso-section-title">Resultados</p>
+            <div class="metrics-grid">
+              <div class="metric">
+                <div class="metric-value">+57%</div>
+                <div class="metric-label">sesiones en el sitio web en los primeros 3 meses</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">+37.1%</div>
+                <div class="metric-label">crecimiento de alcance en Instagram en 4 meses</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">+14.87%</div>
+                <div class="metric-label">aumento de reservas en el primer año</div>
+              </div>
+              <div class="metric">
+                <div class="metric-value">✦</div>
+                <div class="metric-label">Incremento directo en ingresos por reservas</div>
+              </div>
+            </div>
+            <hr class="divider" />
+            <p class="caso-section-title">Aprendizaje clave</p>
+            <p class="caso-text">
+              En moda nupcial, el contenido que <strong>muestra el proceso convierte más que el que muestra el resultado</strong>. Las novias compran confianza antes de comprar un vestido.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ─── CASO 3: PELUQUERÍA & BARBERÍA ─── -->
+    <div class="caso-card" id="caso-gary">
+      <div class="caso-header" onclick="toggleCaso('caso-gary')">
+        <div>
+          <div class="caso-industry">Belleza & Barbería · Meta Ads + Comunidad · Santiago</div>
+          <div class="caso-title">Peluquería & Barbería — De 41 a 224 reservas/mes</div>
+          <div class="caso-desc">Meta Ads + gestión de comunidad que multiplicó el negocio ×5 en 3 años — con datos trimestrales reales.</div>
+          <div class="caso-cta-hint">
+            <span class="arrow">↓</span>
+            <span>Ver análisis completo + datos por trimestre</span>
+          </div>
+        </div>
+      </div>
+      <div class="caso-body">
+        <div class="caso-body-inner">
+          <div>
+            <p class="caso-section-title">El desafío</p>
+            <p class="caso-text">
+              Una peluquería y barbería establecida en Santiago quería escalar su demanda sin depender del boca a boca. Tenían un servicio excelente pero <strong>poca visibilidad digital</strong> y ninguna estructura de pauta publicitaria.
+            </p>
+            <p class="caso-section-title">Mi rol</p>
+            <p class="caso-text">
+              Diseñé e implementé la <strong>estrategia integral desde julio 2023</strong>: campañas de Meta Ads, gestión de comunidad en Instagram y Facebook, análisis mensual de resultados y optimización continua de pauta.
+            </p>
+            <p class="caso-section-title">Enfoque y evolución</p>
+            <p class="caso-text">
+              Comenzamos con campañas de mensajes directos para generar contactos. Con el tiempo evolucionamos hacia <em>segmentación por servicio específico</em> — Balayage, Barbería Premium, Colorimetría — lo que disparó los resultados en 2025. Pasamos de creatividades genéricas a anuncios hiperespecíficos por servicio, reduciendo el costo por contacto <em>un 63%</em> entre 2023 y 2026.
+            </p>
+            <p class="caso-section-title">El quiebre: Q3 2025</p>
+            <p class="caso-text">
+              El hito más notable fue <strong>Q3 2025: 487 reservas en un solo trimestre</strong> — vs 152 en Q3 2024 (+220%). Coincidió exactamente con la activación de campañas segmentadas por servicio. Ese trimestre demostró que la especificidad en los creativos importa más que el presupuesto. Q4 2025 rompió el récord con <strong>730 reservas</strong>.
+            </p>
+          </div>
+          <div>
+            <p class="caso-section-title">Evolución anual de reservas</p>
+            <div class="timeline">
+              <div class="timeline-row">
+                <span class="timeline-year">2023</span>
+                <span class="timeline-reservas">535 reservas</span>
+                <span class="timeline-ventas">Inicio ads (julio)</span>
+              </div>
+              <div class="timeline-row">
+                <span class="timeline-year">2024</span>
+                <span class="timeline-reservas">725 reservas</span>
+                <span class="timeline-ventas">+36% vs 2023</span>
+              </div>
+              <div class="timeline-row highlight">
+                <span class="timeline-year">2025</span>
+                <span class="timeline-reservas">1.770 reservas</span>
+                <span class="timeline-ventas">+144% vs 2024</span>
+              </div>
+              <div class="timeline-row highlight">
+                <span class="timeline-year">2026</span>
+                <span class="timeline-reservas">1.232 en 5.5 meses</span>
+                <span class="timeline-ventas">Nuevo piso histórico</span>
+              </div>
+            </div>
+            <p class="caso-section-title" style="margin-top:1.5rem;">Detalle trimestral 2025</p>
+            <div class="timeline">
+              <div class="timeline-row">
+                <span class="timeline-year">Q1</span>
+                <span class="timeline-reservas">234 reservas</span>
+                <span class="timeline-ventas">$7.665.310 CLP</span>
+              </div>
+              <div class="timeline-row">
+                <span class="timeline-year">Q2</span>
+                <span class="timeline-reservas">319 reservas</span>
+                <span class="timeline-ventas">$8.343.180 CLP</span>
+              </div>
+              <div class="timeline-row highlight">
+                <span class="timeline-year">Q3</span>
+                <span class="timeline-reservas">487 reservas ✦</span>
+                <span class="timeline-ventas">$13.840.950 CLP</span>
+              </div>
+              <div class="timeline-row highlight">
+                <span class="timeline-year">Q4</span>
+                <span class="timeline-reservas">730 reservas ✦</span>
+                <span class="timeline-ventas">$22.858.350 CLP</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Métricas globales -->
+        <hr class="divider" />
+        <p class="caso-section-title">Resultados globales (julio 2023 — junio 2026)</p>
+        <div class="metrics-grid" style="grid-template-columns: repeat(4,1fr); margin-top: 1rem;">
+          <div class="metric">
+            <div class="metric-value">4.5M</div>
+            <div class="metric-label">impresiones totales en Meta</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">20.3K</div>
+            <div class="metric-label">contactos de mensajes generados</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">-63%</div>
+            <div class="metric-label">reducción costo por contacto (2023→2026)</div>
+          </div>
+          <div class="metric">
+            <div class="metric-value">×5.4</div>
+            <div class="metric-label">ritmo mensual de reservas en 3 años</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- TICKER 2 (lime) -->
+  <div class="ticker lime">
+    <div class="ticker-inner">
+      <span class="ticker-item">¡Trabajemos juntos!</span>
+      <span class="ticker-item">Resultados reales</span>
+      <span class="ticker-item">Crezco tu comunidad</span>
+      <span class="ticker-item">Estrategia que funciona</span>
+      <span class="ticker-item">Del contenido a los resultados</span>
+      <span class="ticker-item">¡Trabajemos juntos!</span>
+      <span class="ticker-item">Resultados reales</span>
+      <span class="ticker-item">Crezco tu comunidad</span>
+      <span class="ticker-item">Estrategia que funciona</span>
+      <span class="ticker-item">Del contenido a los resultados</span>
+    </div>
+  </div>
+  <!-- SERVICIOS -->
+  <section id="servicios">
+    <p class="section-label">Servicios</p>
+    <h2 class="section-title">Lo que puedo hacer<br>por <em>tu marca.</em></h2>
+    <div class="servicios-grid">
+      <div class="servicio-card">
+        <div class="servicio-icon">✦</div>
+        <div class="servicio-title">Community Management</div>
+        <p class="servicio-desc">Gestión integral de redes sociales: calendario editorial, publicaciones, atención de mensajes y comentarios, crecimiento de comunidad. Tu marca activa y presente todos los días.</p>
+        <div class="servicio-tags">
+          <span class="servicio-tag">Instagram</span>
+          <span class="servicio-tag">Facebook</span>
+          <span class="servicio-tag">Canva</span>
+          <span class="servicio-tag">Copywriting</span>
+        </div>
+      </div>
+      <div class="servicio-card">
+        <div class="servicio-icon">◈</div>
+        <div class="servicio-title">Pauta Meta Ads</div>
+        <p class="servicio-desc">Creación, gestión y optimización de campañas en Facebook e Instagram. Desde la estrategia hasta el reporte mensual. Foco en resultados reales: contactos, reservas, ventas.</p>
+        <div class="servicio-tags">
+          <span class="servicio-tag">Meta Ads</span>
+          <span class="servicio-tag">CBO</span>
+          <span class="servicio-tag">Retargeting</span>
+          <span class="servicio-tag">Reportes</span>
+        </div>
+      </div>
+      <div class="servicio-card">
+        <div class="servicio-icon">◇</div>
+        <div class="servicio-title">Estrategia de Contenidos</div>
+        <p class="servicio-desc">Definición de identidad de contenido, lineamientos de comunicación, copywriting y calendarios editoriales. Para marcas que quieren claridad y consistencia en su mensaje.</p>
+        <div class="servicio-tags">
+          <span class="servicio-tag">Storytelling</span>
+          <span class="servicio-tag">Calendario</span>
+          <span class="servicio-tag">Estrategia</span>
+          <span class="servicio-tag">Marca</span>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- CONTACTO -->
+  <section id="contacto">
+    <p class="section-label">Contacto</p>
+    <h2 class="contact-tagline">¿Listos para<br>crecer <em>juntos?</em></h2>
+    <p class="contact-sub">Si quieres una estrategia de contenidos real, adaptada a tu negocio y con resultados medibles, escríbeme.</p>
+    <div class="contact-links">
+      <a href="mailto:anamileariast@gmail.com" class="contact-link">
+        <span class="contact-icon">✉</span>
+        anamileariast@gmail.com
+      </a>
+      <a href="https://www.linkedin.com/in/anamilearias/" target="_blank" class="contact-link">
+        <span class="contact-icon" style="font-size:0.75rem;font-weight:800;">in</span>
+        LinkedIn — Ana Arias
+      </a>
+    </div>
+  </section>
+  <!-- FOOTER -->
+  <footer>
+    <span class="footer-logo">Ana Arias</span>
+    <span class="footer-copy">© 2026 · Community & Content Manager · Venezuela / Chile</span>
+  </footer>
+  <script>
+    function toggleCaso(id) {
+      document.querySelectorAll('.caso-card').forEach(c => {
+        if (c.id !== id) c.classList.remove('open');
+      });
+      document.getElementById(id).classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

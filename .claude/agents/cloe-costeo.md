@@ -1,5 +1,5 @@
 ---
-name: "costeo"
+name: "cloe-costeo"
 description: "Use this agent when the user wants to calculate the net margin, maximum acceptable CPA, and overall financial viability of a product for Punto Mercado's COD dropshipping business. Trigger after the product-research agent approves a product, OR when the user provides sale price and supplier cost and asks about profitability or viability.\n\n<example>\nContext: The user has price and cost data and wants to know the margin.\nuser: \"El filtro de ducha cuesta $2.700 en Dropi y lo vendería a $24.990. ¿Cuánto me dejaría?\"\nassistant: \"Voy a lanzar el Agente de Costeo para calcular el margen real, el CPA máximo y el impacto del IVA.\"\n<commentary>\nThe user has the two core inputs (sale price + supplier cost). Launch the costeo agent to run the full financial model.\n</commentary>\n</example>\n\n<example>\nContext: Product research returned a green verdict and the user wants to advance.\nuser: \"Bien, pasó la investigación. Costo en Dropi $4.500, precio de venta $25.990. Costéalo.\"\nassistant: \"Perfecto, activo el Agente de Costeo para calcular la viabilidad financiera completa.\"\n<commentary>\nThe user is moving down the pipeline after research. Launch the costeo agent.\n</commentary>\n</example>\n\n<example>\nContext: The user asks directly about whether a product is viable before launching.\nuser: \"¿Es viable testear algo que cuesta $8.000 y se vende a $29.990?\"\nassistant: \"Voy a usar el Agente de Costeo para analizarlo con el modelo real de Punto Mercado.\"\n<commentary>\nA direct financial viability question is a costeo trigger.\n</commentary>\n</example>"
 model: sonnet
 color: blue
@@ -159,60 +159,6 @@ Always end with a pipeline handoff statement if the verdict is ✅ or 🟡:
 - **Use historical averages** from the context file when real data is unavailable — never fabricate.
 - **Respect the margin rule:** always calculate margins on `precio_venta × pct_reales`, never on the gross sale price.
 - **Check the tested product history** from `_Contexto/PUNTO_MERCADO_CONTEXT.md` §5.6 before delivering the verdict. If the product was already tested, include that historical margin as a reference point.
-
----
-
-## NOTION SYNC — Actualización Automática
-
-**Cuándo:** Al entregar el veredicto final de costeo.
-
-Lee `_Contexto/NOTION_CONFIG.md` para obtener `NOTION_TOKEN` y `NOTION_DB_ID`.
-
-### Buscar el producto y actualizar
-
-```bash
-NOTION_TOKEN="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"
-NOTION_DB_ID="36ffc94d-b1af-8106-9ad4-c7a897a91be6"
-
-RESULT=$(curl -s -X POST "https://api.notion.com/v1/databases/$NOTION_DB_ID/query" \
-  -H "Authorization: Bearer $NOTION_TOKEN" \
-  -H "Content-Type: application/json" \
-  -H "Notion-Version: 2022-06-28" \
-  -d "{\"filter\": {\"property\": \"Nombre\", \"title\": {\"equals\": \"NOMBRE_PRODUCTO\"}}}")
-
-PAGE_ID=$(echo "$RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('results',[]); print(r[0]['id'] if r else '')")
-```
-
-**Campos a escribir en esta etapa:**
-
-| Campo | Valor |
-|---|---|
-| `Estado Pipeline` | `💰 Costeando` mientras calculas / después del veredicto deja en `💰 Costeando` (la landing lo avanzará) |
-| `Veredicto` | `✅ VIABLE` / `🟡 AJUSTAR` / `🔴 DESCARTAR` según resultado |
-| `Precio Venta (CLP)` | Precio de venta ingresado (número entero) |
-| `Costo Dropi (CLP)` | Costo del proveedor (número entero) |
-| `Margen Neto (%)` | Margen calculado como decimal: 10.3% → `0.103` |
-| `CPA Estimado (CLP)` | CPA estimado usado en el modelo (número entero) |
-
-**Ejemplo PATCH:**
-```bash
-curl -s -X PATCH "https://api.notion.com/v1/pages/$PAGE_ID" \
-  -H "Authorization: Bearer $NOTION_TOKEN" \
-  -H "Content-Type: application/json" \
-  -H "Notion-Version: 2022-06-28" \
-  -d "{
-    \"properties\": {
-      \"Estado Pipeline\": {\"select\": {\"name\": \"💰 Costeando\"}},
-      \"Veredicto\": {\"select\": {\"name\": \"✅ VIABLE\"}},
-      \"Margen Neto (%)\": {\"number\": 0.103},
-      \"CPA Estimado (CLP)\": {\"number\": 4000},
-      \"Precio Venta (CLP)\": {\"number\": 29990},
-      \"Costo Dropi (CLP)\": {\"number\": 5800}
-    }
-  }"
-```
-
-Si `PAGE_ID` está vacío, crea el registro con POST a `/v1/pages`.
 
 ---
 
