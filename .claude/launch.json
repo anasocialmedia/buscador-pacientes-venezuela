@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "portfolio",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "5500"],
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "_Plantilla", "-p", "5500", "--no-clipboard"],
       "port": 5500
     },
     {
@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "_Plantilla", "-p", "5501", "--no-clipboard"],
       "port": 5501
+    },
+    {
+      "name": "buscador-pacientes",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "buscador-pacientes/dist", "-p", "5173", "--no-clipboard"],
+      "port": 5173
     }
   ]
 }
