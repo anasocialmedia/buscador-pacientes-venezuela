@@ -767,11 +767,6 @@ export default function App() {
   const [tab, setTab] = useState("buscar");
   const [copied, setCopied] = useState(null);
   const [listening, setListening] = useState(false);
-  const [buscados, setBuscados] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("buscados") || "[]"); } catch { return []; }
-  });
-  const [reportForm, setReportForm] = useState({ nombre: "", edad: "", ultimaUbicacion: "", contacto: "" });
-  const [reportSent, setReportSent] = useState(false);
 
   const startVoice = useCallback(() => {
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -787,16 +782,6 @@ export default function App() {
     rec.start();
   }, []);
 
-  const submitReporte = () => {
-    if (!reportForm.nombre.trim()) return;
-    const nuevo = { ...reportForm, id: Date.now(), fecha: new Date().toLocaleDateString("es-VE") };
-    const updated = [...buscados, nuevo];
-    setBuscados(updated);
-    localStorage.setItem("buscados", JSON.stringify(updated));
-    setReportForm({ nombre: "", edad: "", ultimaUbicacion: "", contacto: "" });
-    setReportSent(true);
-    setTimeout(() => setReportSent(false), 3000);
-  };
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedQuery(query), 220);
@@ -1046,47 +1031,20 @@ export default function App() {
                 <Search size={40} className="mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Escribe un nombre, apellido o cédula</p>
                 <p className="text-xs mt-1 text-slate-300">También puedes hablar tocando el micrófono 🎤</p>
-                {buscados.length > 0 && (
-                  <p className="text-xs mt-3 text-amber-400">{buscados.length} persona(s) reportada(s) como no encontradas</p>
-                )}
               </div>
             )}
 
             {debouncedQuery.trim() && filtered.length === 0 && (
-              <div className="max-w-md mx-auto py-8 px-4">
-                <div className="text-center mb-6 text-slate-400">
-                  <UserX size={40} className="mx-auto mb-3 opacity-40" />
-                  <p className="text-sm font-medium text-slate-600">No encontramos a <span className="font-bold">"{debouncedQuery}"</span></p>
-                  <p className="text-xs mt-1">Intenta con otro nombre, apellido o cédula</p>
-                </div>
-                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                  <p className="font-semibold text-sm text-amber-900 mb-1">¿No lo encontraste?</p>
-                  <p className="text-xs text-amber-700 mb-3">Déjanos el nombre y datos de contacto. Voluntarios y personal de hospitales pueden ayudarte a localizarlo.</p>
-                  {reportSent ? (
-                    <div className="text-center py-3 text-emerald-700 font-semibold text-sm">✓ Reporte enviado. Te contactaremos si hay novedades.</div>
-                  ) : (
-                    <div className="space-y-2">
-                      <input value={reportForm.nombre} onChange={e => setReportForm(f => ({...f, nombre: e.target.value}))}
-                        placeholder="Nombre completo del familiar *"
-                        className="w-full px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                      <div className="grid grid-cols-2 gap-2">
-                        <input value={reportForm.edad} onChange={e => setReportForm(f => ({...f, edad: e.target.value}))}
-                          placeholder="Edad aproximada"
-                          className="px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                        <input value={reportForm.ultimaUbicacion} onChange={e => setReportForm(f => ({...f, ultimaUbicacion: e.target.value}))}
-                          placeholder="Última ubicación conocida"
-                          className="px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                      </div>
-                      <input value={reportForm.contacto} onChange={e => setReportForm(f => ({...f, contacto: e.target.value}))}
-                        placeholder="Tu teléfono o WhatsApp para contactarte"
-                        className="w-full px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
-                      <button onClick={submitReporte} disabled={!reportForm.nombre.trim()}
-                        className="w-full bg-amber-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-40 active:scale-95 transition-all">
-                        Reportar como no encontrado
-                      </button>
-                    </div>
-                  )}
-                </div>
+              <div className="max-w-sm mx-auto py-10 px-4 text-center">
+                <UserX size={40} className="mx-auto mb-3 text-slate-300" />
+                <p className="text-sm font-medium text-slate-600">No encontramos a <span className="font-bold">"{debouncedQuery}"</span></p>
+                <p className="text-xs text-slate-400 mt-1 mb-5">Intenta con otro nombre, apellido o número de cédula</p>
+                <button
+                  onClick={() => setTab("sitios")}
+                  className="w-full bg-amber-500 text-white py-3 rounded-xl text-sm font-bold hover:bg-amber-600 active:scale-95 transition-all"
+                >
+                  Ver sitios especializados en personas desaparecidas →
+                </button>
               </div>
             )}
 
@@ -1185,21 +1143,82 @@ export default function App() {
           </footer>
         </>
       ) : (
-        <main className="max-w-3xl mx-auto px-4 py-10">
-          <h2 className="text-lg font-bold mb-1">Otros recursos</h2>
-          <p className="text-sm text-slate-500 mb-6">Iniciativas ciudadanas. Ninguna verifica lo que reciben — nunca den dinero a cambio de información.</p>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {sitiosExternos.map((s) => (
-              <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer"
-                className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-red-300 hover:shadow-sm transition-all">
-                <p className="text-sm font-semibold flex items-center gap-1.5">
-                  {s.nombre} <ExternalLink size={12} className="text-slate-400" />
-                </p>
-                <p className="text-xs text-slate-500 mt-1 font-mono">{s.url.replace("https://", "")}</p>
-                <p className="text-sm text-slate-600 mt-2">{s.desc}</p>
-              </a>
-            ))}
-          </div>
+        <main className="max-w-3xl mx-auto px-4 py-8 space-y-8">
+
+          {/* Números de emergencia */}
+          <section>
+            <h2 className="text-base font-bold mb-3 flex items-center gap-2">📞 Números de emergencia Venezuela</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { num: "171", label: "Sistema Nacional de Emergencias", nota: "Ambulancias · Bomberos · Rescate" },
+                { num: "0800-SALUD-YA", label: "Ministerio de Salud", nota: "Orientación médica gratuita" },
+                { num: "0212-571-1271", label: "Cruz Roja Venezolana", nota: "Localización de personas · Ayuda humanitaria" },
+                { num: "0800-2226272", label: "CICPC (0800-CÁMARAS)", nota: "Personas desaparecidas" },
+                { num: "0212-509-0011", label: "Protección Civil Nacional", nota: "Coordinación de rescate y emergencias" },
+                { num: "0414-100-1717", label: "Defensa Civil Caracas", nota: "Evacuaciones y búsqueda en escombros" },
+              ].map(({ num, label, nota }) => (
+                <a key={num} href={`tel:${num.replace(/-/g,"")}`}
+                  className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl px-4 py-3 hover:border-red-300 active:scale-[0.98] transition-all">
+                  <span className="font-mono font-bold text-red-600 text-sm shrink-0">{num}</span>
+                  <div>
+                    <p className="text-xs font-semibold text-slate-800 leading-tight">{label}</p>
+                    <p className="text-[11px] text-slate-400">{nota}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </section>
+
+          {/* Donación de sangre */}
+          <section>
+            <h2 className="text-base font-bold mb-3 flex items-center gap-2">🩸 Donación de sangre</h2>
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-900 space-y-1">
+              <p className="font-semibold">Los hospitales necesitan sangre urgente. Si estás en Caracas:</p>
+              <p>· Banco de Sangre Hospital Universitario: <strong>0212-693-1900</strong></p>
+              <p>· Cruz Roja — Banco de Sangre: <strong>0212-571-1271</strong></p>
+              <p>· Hospital Domingo Luciani (El Llanito): preguntar en admisión</p>
+              <p className="text-xs text-red-700 mt-2">Grupos O+ y O− son los más necesarios en emergencias masivas.</p>
+            </div>
+          </section>
+
+          {/* Personas desaparecidas — sitios especializados */}
+          <section>
+            <h2 className="text-base font-bold mb-1">🔎 Buscas a alguien desaparecido</h2>
+            <p className="text-xs text-slate-500 mb-3">Estos sitios están especializados en registro de personas desaparecidas. Regístralo ahí para que más personas puedan ayudarte.</p>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {sitiosExternos.map((s) => (
+                <a key={s.url} href={s.url} target="_blank" rel="noopener noreferrer"
+                  className="block bg-white border border-slate-200 rounded-xl p-4 hover:border-red-300 hover:shadow-sm transition-all">
+                  <p className="text-sm font-semibold flex items-center gap-1.5">
+                    {s.nombre} <ExternalLink size={12} className="text-slate-400" />
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1 font-mono">{s.url.replace("https://", "")}</p>
+                  <p className="text-sm text-slate-600 mt-2">{s.desc}</p>
+                </a>
+              ))}
+            </div>
+            <p className="text-xs text-slate-400 mt-3">⚠️ Ninguna de estas plataformas verifica lo que reciben. Nunca paguen por información sobre una persona.</p>
+          </section>
+
+          {/* Contexto Venezuela */}
+          <section>
+            <h2 className="text-base font-bold mb-3 flex items-center gap-2">ℹ️ Información importante</h2>
+            <div className="space-y-2 text-xs text-slate-600">
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <p className="font-semibold text-slate-700 mb-1">Comunicaciones interrumpidas</p>
+                <p>Las fallas de señal Movilnet/Digitel/Movistar son frecuentes en emergencias. Si no logras llamar, busca zonas altas o espacios abiertos. CANTV fijo puede funcionar cuando el celular no.</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <p className="font-semibold text-slate-700 mb-1">Apagones eléctricos</p>
+                <p>Carga tu teléfono donde haya electricidad. Muchos hospitales tienen planta eléctrica propia. Gasolineras y centros comerciales también pueden tener carga disponible.</p>
+              </div>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <p className="font-semibold text-slate-700 mb-1">Si un familiar fue traslado</p>
+                <p>Los traslados entre hospitales son comunes cuando no hay capacidad. Llama siempre al hospital de destino y al de origen. Pregunta por el libro de traslados o la enfermería de guardia.</p>
+              </div>
+            </div>
+          </section>
+
         </main>
       )}
     </div>
