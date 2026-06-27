@@ -263,7 +263,7 @@ export default function App() {
                         <p className="flex items-center gap-1"><MapPin size={10} className="shrink-0" /> {r.hospital}</p>
                         <div className="flex gap-3">
                           <span><span className="text-slate-400">CI:</span> <span className="font-mono">{fmtCedula(r.cedula) !== "—" ? fmtCedula(r.cedula) : "—"}</span></span>
-                          {r.edad && <span><span className="text-slate-400">Edad:</span> {r.edad}</span>}
+                          {r.edad && <span><span className="text-slate-400">Edad:</span> {parseInt(r.edad) < 18 ? "Menor de edad" : r.edad}</span>}
                         </div>
                         {r.notas && <p className="text-amber-700 leading-snug">{r.notas}</p>}
                       </div>
