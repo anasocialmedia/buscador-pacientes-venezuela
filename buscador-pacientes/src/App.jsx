@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  Search, AlertTriangle, Upload, ListChecks, ShieldAlert, Plus, Trash2, Info,
-  ExternalLink, Camera, FileText, Loader2, X, MapPin,
+  Search, Plus, Trash2, ExternalLink, MapPin, UserPlus,
 } from "lucide-react";
 
 // ---------- helpers ----------
@@ -64,56 +63,6 @@ function parseLines(text, hospital, fuente) {
   });
 }
 
-// ---------- lectura de fotos con IA ----------
-const fileToBase64 = (file) =>
-  new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result.split(",")[1]);
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-
-async function readListFromImage(file) {
-  const base64 = await fileToBase64(file);
-  const prompt =
-    "Esta imagen es una lista de pacientes o heridos de un hospital en Venezuela tras un terremoto. " +
-    "Transcribe cada persona como un objeto JSON con las claves nombre, cedula, edad, notas (todo como texto, usa \"\" si no aplica). " +
-    "Si en vez de cédula ves una edad, ponla en edad como '24 años' y deja cedula vacío. " +
-    "Si dice 'sin cédula', deja cedula vacío y pon 'Sin cédula' en notas. " +
-    "Si hay alguna anotación de estado (quirófano, medicina, alta, fallecido, etc.) pásala tal cual a notas. " +
-    "Responde ÚNICAMENTE con un array JSON válido, sin texto adicional.";
-
-  const apiKey = import.meta.env.VITE_ANTHROPIC_KEY || "";
-  if (!apiKey) throw new Error("Falta VITE_ANTHROPIC_KEY en el archivo .env");
-
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-      "anthropic-dangerous-direct-browser-access": "true",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-6",
-      max_tokens: 1000,
-      messages: [{
-        role: "user",
-        content: [
-          { type: "image", source: { type: "base64", media_type: file.type || "image/jpeg", data: base64 } },
-          { type: "text", text: prompt },
-        ],
-      }],
-    }),
-  });
-  const data = await response.json();
-  const textBlock = (data.content || []).find((b) => b.type === "text");
-  if (!textBlock) throw new Error("La IA no devolvió texto legible.");
-  const clean = textBlock.text.replace(/```json|```/g, "").trim();
-  const arr = JSON.parse(clean);
-  if (!Array.isArray(arr)) throw new Error("La IA no devolvió una lista.");
-  return arr;
-}
 
 // ============================================================================
 export default function App() {
@@ -121,21 +70,12 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [hospitalFilter, setHospitalFilter] = useState("Todos");
   const [section, setSection] = useState("agregar");
-
-  const [impHospital, setImpHospital] = useState("");
-  const [impFuente, setImpFuente] = useState("");
-  const [impText, setImpText] = useState("");
-  const [impMethod, setImpMethod] = useState("foto");
-  const [preview, setPreview] = useState(null);
-  const [aiBusy, setAiBusy] = useState(false);
-  const [aiError, setAiError] = useState("");
-  const [imgPreviewUrl, setImgPreviewUrl] = useState(null);
-
-  const [conflictsUnlocked, setConflictsUnlocked] = useState(false);
-  const [conflictsPinInput, setConflictsPinInput] = useState("");
-  const [pinError, setPinError] = useState(false);
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 5;
+
+  // Formulario nuevo paciente
+  const [form, setForm] = useState({ nombre: "", cedula: "", edad: "", hospital: "", notas: "", estado: "" });
+  const [formSaved, setFormSaved] = useState(false);
 
   useEffect(() => {
     try {
@@ -160,6 +100,16 @@ export default function App() {
     } catch (e) {}
   };
 
+  const handleAddPatient = () => {
+    if (!form.nombre.trim() || !form.hospital.trim()) return;
+    const nuevo = mk(form.nombre.trim(), normCedula(form.cedula), form.edad.trim(), form.hospital.trim(), "Ingresado manualmente", form.notas.trim(), form.estado.trim());
+    setRecords((prev) => [...prev, nuevo]);
+    persistExtra([nuevo]);
+    setForm({ nombre: "", cedula: "", edad: "", hospital: "", notas: "", estado: "" });
+    setFormSaved(true);
+    setTimeout(() => setFormSaved(false), 2500);
+  };
+
   const todosHospitales = useMemo(() => ["Todos", ...new Set(records.map((r) => r.hospital))], [records]);
 
   // Reset page when search changes
@@ -176,56 +126,8 @@ export default function App() {
     });
   }, [records, query, hospitalFilter]);
 
-  const conflicts = useMemo(() => {
-    const byCedula = {}, byName = {};
-    records.forEach((r) => {
-      const c = normCedula(r.cedula), n = normName(r.nombre);
-      if (c) (byCedula[c] = byCedula[c] || []).push(r);
-      if (n) (byName[n] = byName[n] || []).push(r);
-    });
-    const cedulaConflicts = Object.entries(byCedula)
-      .map(([ced, rows]) => ({ ced, rows, names: new Set(rows.map((r) => normName(r.nombre))) }))
-      .filter((g) => g.names.size > 1);
-    const nameConflicts = Object.entries(byName)
-      .map(([nom, rows]) => ({ nom, rows, cedulas: new Set(rows.map((r) => normCedula(r.cedula)).filter(Boolean)) }))
-      .filter((g) => g.cedulas.size > 1);
-    return { cedulaConflicts, nameConflicts };
-  }, [records]);
-
-  const totalConflicts = conflicts.cedulaConflicts.length + conflicts.nameConflicts.length;
-
-  const handlePreviewText = () => {
-    if (!impText.trim() || !impHospital.trim()) return;
-    setPreview(parseLines(impText, impHospital.trim(), impFuente.trim() || "Importado manualmente (texto)"));
-  };
-
-  const handleImageUpload = async (file) => {
-    if (!file || !impHospital.trim()) { setAiError("Primero escribe el nombre del hospital arriba."); return; }
-    setAiBusy(true); setAiError(""); setImgPreviewUrl(URL.createObjectURL(file));
-    try {
-      const arr = await readListFromImage(file);
-      setPreview(arr.map((p) => mk(p.nombre || "(sin nombre)", normCedula(p.cedula), p.edad || "", impHospital.trim(), impFuente.trim() || "Foto leída por IA", p.notas || "")));
-    } catch (e) {
-      setAiError("No se pudo leer la imagen automáticamente (" + e.message + "). Puedes transcribirla a mano en 'Pegar texto'.");
-    } finally { setAiBusy(false); }
-  };
-
   const handleConfirmImport = () => {
     if (!preview) return;
-    setRecords((prev) => [...prev, ...preview]);
-    persistExtra(preview);
-    setPreview(null); setImpText(""); setImgPreviewUrl(null);
-  };
-
-  const tryPin = () => {
-    if (conflictsPinInput === CONFLICTS_PIN) {
-      setConflictsUnlocked(true); setConflictsPinInput(""); setPinError(false);
-    } else {
-      setConflictsPinInput(""); setPinError(true);
-    }
-  };
-
-  const removeFromPreview = (id) => setPreview((prev) => prev.filter((p) => p.id !== id));
   const removeRecord = (id) => setRecords((prev) => prev.filter((r) => r.id !== id));
 
   return (
@@ -272,7 +174,7 @@ export default function App() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Nombre, apellido o cédula…"
+                placeholder="Buscar paciente por nombre o cédula…"
                 className="w-full pl-10 pr-3 py-3 rounded-xl border border-slate-300 text-base focus:outline-none focus:ring-2 focus:ring-red-600"
                 autoFocus
               />
@@ -358,9 +260,7 @@ export default function App() {
       <main className="max-w-3xl mx-auto px-4 sm:px-8 pb-10 mt-4">
         <div className="flex gap-1 border-b border-slate-300 overflow-x-auto mb-5">
           {[
-            { id: "agregar", label: "Agregar lista", icon: Upload },
-            { id: "conflictos", label: "Conflictos", icon: AlertTriangle },
-            { id: "alertas", label: "Fuentes y alertas", icon: ShieldAlert },
+            { id: "agregar", label: "Agregar paciente", icon: UserPlus },
             { id: "sitios", label: "Otros sitios", icon: ExternalLink },
           ].map((t) => (
             <button
@@ -377,159 +277,60 @@ export default function App() {
 
         {/* ── AGREGAR ── */}
         {section === "agregar" && (
-          <div>
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-sm text-blue-900 flex gap-2">
-              <Info size={16} className="shrink-0 mt-0.5" />
-              <p>Primero indica el hospital, después sube la foto o pega el texto. Siempre revisa la vista previa antes de confirmar.</p>
-            </div>
-            <div className="space-y-3 max-w-xl">
-              <div>
-                <label className="text-xs font-semibold text-slate-600">Hospital</label>
-                <input value={impHospital} onChange={(e) => setImpHospital(e.target.value)}
-                  placeholder="Ej: Ana Francisca Pérez de León 2"
-                  className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm" />
+          <div className="max-w-xl space-y-4">
+            {formSaved && (
+              <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-800 font-medium">
+                ✓ Paciente guardado correctamente
               </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-600">Fuente / cómo llegó esta lista</label>
-                <input value={impFuente} onChange={(e) => setImpFuente(e.target.value)}
-                  placeholder="Ej: Foto del cartel en pared, grupo de WhatsApp X"
-                  className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm" />
-              </div>
-              <div className="flex gap-2 pt-1">
-                <button onClick={() => setImpMethod("foto")} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium border ${impMethod === "foto" ? "bg-slate-900 text-white border-slate-900" : "border-slate-300 text-slate-600"}`}>
-                  <Camera size={15} /> Subir foto
-                </button>
-                <button onClick={() => setImpMethod("texto")} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium border ${impMethod === "texto" ? "bg-slate-900 text-white border-slate-900" : "border-slate-300 text-slate-600"}`}>
-                  <FileText size={15} /> Pegar texto
-                </button>
-              </div>
-              {impMethod === "foto" && (
-                <div className="border-2 border-dashed border-slate-300 rounded-xl p-5 text-center">
-                  {imgPreviewUrl && <img src={imgPreviewUrl} alt="" className="max-h-40 mx-auto rounded-lg mb-3 object-contain" />}
-                  <input type="file" accept="image/*" id="fotoInput" className="hidden"
-                    onChange={(e) => e.target.files[0] && handleImageUpload(e.target.files[0])} />
-                  <label htmlFor="fotoInput" className="inline-flex items-center gap-2 bg-red-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium cursor-pointer hover:bg-red-700">
-                    {aiBusy ? <Loader2 size={15} className="animate-spin" /> : <Camera size={15} />}
-                    {aiBusy ? "Leyendo la imagen…" : "Elegir foto de la lista"}
-                  </label>
-                  <p className="text-xs text-slate-400 mt-2">La IA transcribe nombre, cédula/edad y notas. Listas muy largas conviene partirlas en 2-3 fotos.</p>
-                  {aiError && <p className="text-xs text-red-600 mt-2">{aiError}</p>}
+            )}
+            <div className="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-slate-600">Nombre completo *</label>
+                  <input value={form.nombre} onChange={(e) => setForm(f => ({ ...f, nombre: e.target.value }))}
+                    placeholder="Ej: María González"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
                 </div>
-              )}
-              {impMethod === "texto" && (
                 <div>
-                  <textarea value={impText} onChange={(e) => setImpText(e.target.value)} rows={7}
-                    placeholder={"Nombre Apellido - 12.345.678\nOtro Nombre - 14 años\nFulano de Tal - Sin cédula"}
-                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono" />
-                  <button onClick={handlePreviewText} className="mt-2 bg-slate-900 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-slate-800">
-                    <ListChecks size={15} /> Ver vista previa
-                  </button>
+                  <label className="text-xs font-semibold text-slate-600">Cédula</label>
+                  <input value={form.cedula} onChange={(e) => setForm(f => ({ ...f, cedula: e.target.value }))}
+                    placeholder="Ej: 12.345.678"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
                 </div>
-              )}
+                <div>
+                  <label className="text-xs font-semibold text-slate-600">Edad</label>
+                  <input value={form.edad} onChange={(e) => setForm(f => ({ ...f, edad: e.target.value }))}
+                    placeholder="Ej: 34 años"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-semibold text-slate-600">Hospital *</label>
+                  <input value={form.hospital} onChange={(e) => setForm(f => ({ ...f, hospital: e.target.value }))}
+                    placeholder="Ej: Pérez Carreño (La Yaguara)"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600">Estado</label>
+                  <input value={form.estado} onChange={(e) => setForm(f => ({ ...f, estado: e.target.value }))}
+                    placeholder="Ej: Quirófano, Medicina, De alta"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-600">Notas</label>
+                  <input value={form.notas} onChange={(e) => setForm(f => ({ ...f, notas: e.target.value }))}
+                    placeholder="Observaciones adicionales"
+                    className="w-full mt-1 px-3 py-2 rounded-lg border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-red-600" />
+                </div>
+              </div>
+              <button
+                onClick={handleAddPatient}
+                disabled={!form.nombre.trim() || !form.hospital.trim()}
+                className="w-full bg-red-600 text-white py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed mt-2"
+              >
+                <Plus size={16} /> Guardar paciente
+              </button>
             </div>
-            {preview && (
-              <div className="mt-5 max-w-xl">
-                <p className="text-sm font-semibold mb-2">Vista previa ({preview.length} registros) — revisa antes de confirmar</p>
-                <div className="border border-slate-200 rounded-lg divide-y divide-slate-100 max-h-72 overflow-y-auto bg-white">
-                  {preview.map((p) => (
-                    <div key={p.id} className="px-3 py-2 text-xs flex justify-between gap-2 items-center">
-                      <span><span className="font-medium">{p.nombre}</span>{p.notas && <span className="text-amber-700"> · {p.notas}</span>}</span>
-                      <span className="flex items-center gap-2 shrink-0">
-                        <span className="font-mono text-slate-500">{p.cedula || p.edad || "—"}</span>
-                        <button onClick={() => removeFromPreview(p.id)} className="text-slate-300 hover:text-red-500"><X size={13} /></button>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-2 mt-3">
-                  <button onClick={handleConfirmImport} className="bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 hover:bg-emerald-800">
-                    <Plus size={15} /> Confirmar e incorporar
-                  </button>
-                  <button onClick={() => setPreview(null)} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-200">Descartar</button>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-2">Esto se guarda solo en tu navegador, no es público.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── CONFLICTOS (PRIVADO) ── */}
-        {section === "conflictos" && (
-          <>
-            {!conflictsUnlocked ? (
-              <div className="max-w-xs mx-auto mt-8 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm text-center space-y-4">
-                <ShieldAlert size={32} className="text-amber-500 mx-auto" />
-                <p className="text-sm font-semibold text-slate-700">Sección privada</p>
-                <p className="text-xs text-slate-500">
-                  Esta sección contiene inconsistencias entre fuentes que aún no han sido verificadas y no es adecuada para el público general.
-                </p>
-                <input
-                  type="password"
-                  value={conflictsPinInput}
-                  onChange={(e) => { setConflictsPinInput(e.target.value); setPinError(false); }}
-                  onKeyDown={(e) => e.key === "Enter" && tryPin()}
-                  placeholder="PIN de acceso"
-                  className={`w-full px-3 py-2 rounded-lg border text-sm text-center tracking-widest focus:outline-none focus:ring-2 focus:ring-red-600 ${pinError ? "border-red-400 bg-red-50" : "border-slate-300"}`}
-                  autoFocus
-                />
-                {pinError && <p className="text-xs text-red-600 -mt-2">PIN incorrecto, intenta de nuevo.</p>}
-                <button onClick={tryPin} className="w-full bg-slate-900 text-white py-2 rounded-lg text-sm font-medium hover:bg-slate-800">
-                  Entrar
-                </button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex items-start justify-between gap-3">
-                  <p className="text-sm text-slate-600">
-                    No siempre es un error — puede ser una transcripción distinta de la misma persona, o dos personas distintas con datos parecidos. Confirmar a mano antes de informar.
-                  </p>
-                  <button onClick={() => setConflictsUnlocked(false)} className="text-xs text-slate-400 hover:text-slate-600 shrink-0 whitespace-nowrap">
-                    Cerrar sesión
-                  </button>
-                </div>
-                <p className="text-xs text-slate-500">{totalConflicts} grupo(s) por revisar</p>
-                {totalConflicts === 0 && (
-                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-sm text-emerald-800">
-                    No se detectaron inconsistencias en los datos cargados actualmente.
-                  </div>
-                )}
-                {conflicts.cedulaConflicts.map((g) => (
-                  <div key={g.ced} className="bg-white border border-red-200 rounded-xl p-4">
-                    <p className="text-xs font-semibold text-red-700 uppercase mb-2">Misma cédula, nombres distintos — {fmtCedula(g.ced)}</p>
-                    {g.rows.map((r) => (
-                      <p key={r.id} className="text-sm">
-                        <span className="font-medium">{r.nombre}</span>{" "}
-                        <span className="text-slate-400 text-xs">({r.hospital} · {r.fuente})</span>
-                      </p>
-                    ))}
-                  </div>
-                ))}
-                {conflicts.nameConflicts.map((g) => (
-                  <div key={g.nom} className="bg-white border border-amber-200 rounded-xl p-4">
-                    <p className="text-xs font-semibold text-amber-700 uppercase mb-2">Mismo nombre, cédulas distintas</p>
-                    {g.rows.map((r) => (
-                      <p key={r.id} className="text-sm">
-                        <span className="font-medium">{r.nombre}</span>{" "}
-                        <span className="font-mono text-slate-600">{r.cedula}</span>{" "}
-                        <span className="text-slate-400 text-xs">({r.hospital} · {r.fuente})</span>
-                      </p>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ── ALERTAS ── */}
-        {section === "alertas" && (
-          <div className="space-y-3">
-            {alertasFuentes.map((a, i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-xl p-4">
-                <p className="text-sm font-semibold flex items-center gap-2"><ShieldAlert size={15} className="text-amber-600 shrink-0" /> {a.titulo}</p>
-                <p className="text-sm text-slate-600 mt-1">{a.detalle}</p>
-              </div>
-            ))}
+            <p className="text-[11px] text-slate-400 px-1">Los datos se guardan en este navegador. Campos marcados con * son obligatorios.</p>
           </div>
         )}
 
