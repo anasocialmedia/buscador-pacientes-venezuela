@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { Search, ExternalLink, MapPin, ChevronLeft, ChevronRight, Plus, CheckCircle, AlertCircle, X, Copy, Mic, MicOff, UserX } from "lucide-react";
 
 // ---------- helpers ----------
-const stripAccents = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
+const stripAccents = (s = "") => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
 const phoneticNorm = (w = "") =>
   stripAccents(w).toLowerCase()
@@ -1021,6 +1021,7 @@ export default function App() {
                   </div>
                 )}
               </div>
+            </div>
           </div>
 
           {/* Resultados */}
