@@ -134,9 +134,151 @@ const pacientes = [
   mk("Hamping Feng", "83812553", "35 años", H_AVILA, "Listado físico El Ávila", "Dx: Polit / esguince pie izquierdo"),
   mk("Karin Aguilar", "6123953", "65 años", H_AVILA, "Listado físico El Ávila", "Dx: Polit"),
   mk("Laura Marquina", "17323315", "42 años", H_AVILA, "Listado físico El Ávila", "Dx: Politraumatismo"),
-  // Items 63+ (parcialmente legibles en foto 2)
+  // Items 63+ (parcialmente legibles en foto 2 El Ávila)
   mk("Pablo González", "1868258", "88 años", H_AVILA, "Listado físico El Ávila", "Dx: TCE (datos parciales — verificar original)"),
+
+  // ── Hospital Militar Universitario Dr. Carlos Arvelo ──
+  // Lista de Personal de Contingencia 24JUN26
+  // Fuente: listado oficial impreso (fotos recibidas)
+  // NOTA: Items 65–112 no visibles en las fotos compartidas — pendiente completar
 ];
+
+const H_ARVELO = "Hospital Militar Dr. Carlos Arvelo";
+const arvelo = [
+  // Fuente: PDF oficial "Lista de Personal de Contingencia 24JUN26" (5 páginas)
+  // NOTA: Items 89–112 no presentes en el documento original
+  mk("Murillo Landaeta Kéliz", "28443736", "23 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: El Paraíso"),
+  mk("López Joselyn", "15034143", "45 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Visedha González", "26668182", "28 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: El Paraíso"),
+  mk("Mora Yosmar", "11649384", "52 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Artigas"),
+  mk("Castillo Deimar", "21282503", "33 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Antimano"),
+  mk("Gámez Torres Heyribi", "33025749", "20 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Guairataro"),
+  mk("Rangel Yesenia", "11380548", "54 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Catia"),
+  mk("Ramírez Amundarain Ivana", "14451022", "50 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Capuchino"),
+  mk("Briceño Mirabal Josefina", "3970281", "77 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Catia"),
+  mk("Luca González Yamilet", "13610512", "49 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Artigas"),
+  mk("Montilla Zelaya Herrera", "6285593", "54 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Barrios Yolanda", "5323419", "77 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Álvarez Bermo Elsy", "11697809", "53 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Brito Alvarado Camila", "32730226", "17 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Macuto"),
+  mk("Dorta Rodríguez Delia", "6124942", "92 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Quinta Crespo"),
+  mk("Coen Blanco", "5013048", "66 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Morillo Hernández Nehomar", "15280448", "45 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Comandancia"),
+  mk("Murillo Landaeta Yorgelis Yadil", "28440024", "26 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Castro Lauriana", "867005", "66 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Hernández Lilia", "16598007", "42 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Sánchez Alvarado Stefani", "31913023", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Alondra Díaz Delismar del V.", "20102925", "35 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Higuerote"),
+  mk("Torres Yenile", "23634549", "34 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Hernández Pérez Asdrúbal", "13641724", "48 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: El Paraíso"),
+  mk("Aguilar Raúl", "648196", "63 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Juan"),
+  mk("Salas Héctor", "5921822", "65 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Peña Emma", "2528862", "86 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Guampa Pavia Milagro", "8203313", "66 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Castillo Rosana", "15366629", "43 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Coen Celia", "5613048", "66 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Pérez Juan", "16083970", "42 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Tadrón Mirian", "3551082", "78 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Capuchino"),
+  mk("Milans Gladys", "5114187", "68 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Artigas"),
+  mk("Espinoza Germán", "10810746", "57 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Paraíso"),
+  mk("Aguilar Carmen", "", "21 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Pinto José", "649768", "77 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Salma Yésica", "22017564", "31 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Carapita"),
+  mk("Gómez Críspulo", "33025749", "20 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Guarataro"),
+  mk("Durán Aura", "6330439", "68 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Los Teques"),
+  mk("Cogollo Deiner", "31572269", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Guanche Delfín", "3611764", "74 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("María Fragozo Peña", "4556514", "69 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Delia de Guerrero Peña", "11642518", "50 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Catia"),
+  mk("Ana de Pablo", "4631806", "76 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Navas Yayaira", "18210310", "35 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Artigas"),
+  mk("García Diana", "6270588", "59 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Zonis Nalleli", "14289990", "44 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Juan"),
+  mk("Suares Tomasa", "33067691", "16 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Velásquez Jolimar", "11638401", "53 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Varela María", "21364211", "32 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Villao Pastora Ducieidis", "", "30 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Juan"),
+  mk("Hernández de Collado Mónica", "8152742", "55 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("González Viviana", "12540389", "58 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Brito Vasquez Nélide", "5120175", "69 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Guzmán Aracelis", "31556775", "20 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Antonio"),
+  mk("Gómez Apostol Valentina", "", "20 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Pastora"),
+  mk("Herrera Victor", "26924423", "27 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Rojas Jesús", "2321156", "48 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Santos Flores Mario H.", "24869842", "30 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Garati Cova", "25132946", "24 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Briceño María", "1445299", "90 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Legorburu Juan Andrés", "6914851", "58 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Los Palos Grandes"),
+  mk("Anchundia Isaac", "2199218", "81 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Paraíso"),
+  mk("Pericaguan Milba", "13375459", "49 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Blanco Milquiades", "15147810", "46 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Quao Suylin", "16135135", "40 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Castillo Alba", "15947646", "42 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Mariño Castello", "31289457", "35 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Pastora"),
+  mk("Marcano Suse", "25612616", "33 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Catia"),
+  mk("Marcano Odalis", "10581191", "57 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Pérez Infantes", "33218435", "18 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Hetty Sam", "16769990", "37 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Garazo Andrea", "19445453", "34 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("González Ahimar", "6270109", "56 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Caracas"),
+  mk("Olivero Ana", "4281217", "72 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Ramos Joselina Alvarado", "6916206", "61 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Ismael Rumanca Torres", "31312002", "23 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Nelda Bello", "11015849", "47 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Monsalve Kiana", "13466342", "47 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Salas Yilseya", "9999170", "57 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Paraíso"),
+  mk("Laya Yosil", "15034147", "45 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Urdaneta"),
+  mk("Salazar Carlos", "27178947", "28 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Penal"),
+  mk("Vargas Nancy", "5323419", "47 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Martín"),
+  mk("Moreno Yulitza", "", "34 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Artigas"),
+  mk("Salazar Yajaira", "15160619", "44 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Delicias"),
+  mk("Acosta Ámber", "31950088", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Juan"),
+  mk("Durán José", "10549929", "59 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Artigas"),
+  mk("Fernández Lilia", "16598007", "42 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  // Items 89–112: no presentes en el documento original
+  mk("Stefani Villegas", "28453309", "25 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Álvarez Anderson", "17755833", "29 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: San Juan"),
+  mk("Piñero Díaz Oukli", "29910706", "23 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira", "Fallecido — según lista oficial"),
+  mk("Marcano González Mara", "33010536", "16 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Hamer Morles Álvarez", "32922380", "16 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Carvajal Jon", "17982017", "41 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Jusmary Tovar", "19272179", "37 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Luis Martinez", "10683348", "49 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Giovanny López", "15625037", "47 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Torrellas Maria", "29656134", "29 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Ortega Belde", "5827267", "67 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("González Ahimar", "", "56 años", H_ARVELO, "Lista Contingencia 24JUN26", ""),
+  mk("Palmer Darliman", "27956623", "26 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Rodriguez Luis", "24802937", "31 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Paola González", "27042446", "27 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Ramos Mayerling", "15780524", "41 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Luis Martinez", "6683348", "49 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Casalta 3"),
+  mk("Arias Fructuoso", "6156642", "65 años", H_ARVELO, "Lista Contingencia 24JUN26", "GNB"),
+  mk("Belde Ortega", "5827267", "67 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Mayerling Ramos", "15780524", "41 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Yoselyn Guerra", "6502264", "59 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Lourdes Jiménez", "8654412", "59 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Fuerte Tiuna"),
+  mk("Yakelin Santana", "10398248", "56 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Los Corales"),
+  mk("González Martínez María Cristina", "11192760", "55 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("López Morales César", "23622267", "30 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Comandancia GNB"),
+  mk("Noguera Arángel", "31752473", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Macuto La Guaira"),
+  mk("Rangel Dephne", "29619923", "23 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Macuto La Guaira"),
+  mk("Mariany Salazar", "32454171", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Macuto La Guaira"),
+  mk("Franklin Pérez Guanche", "17160400", "42 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Génesis Silva", "25874216", "30 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Danieli Carelis Garcia", "", "30 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Osorio Elvia", "24153416", "33 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Macuto La Guaira"),
+  mk("Elías Melo", "20888810", "33 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Maite Coa", "11165265", "48 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Elvis Etolino", "32335642", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Sergio Pérez", "32635244", "15 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Florián Cedeño Alberto", "26898085", "28 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: Guarenas"),
+  mk("Yan Iduara", "32106240", "18 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+  mk("Yoselyn Guerra", "31752478", "19 años", H_ARVELO, "Lista Contingencia 24JUN26", "Proc: La Guaira"),
+];
+
+// Merge all patient arrays
+const pacientesAll = [...pacientes, ...arvelo];
 
 const sitiosExternos = [
   { nombre: "Desaparecidos Terremoto Venezuela", url: "https://desaparecidosterremotovenezuela.com", desc: "Citado en CNN. Reporta a alguien con quien no logras contactar, o avisa cuando lo encuentres." },
@@ -162,7 +304,7 @@ export default function App() {
   const filtered = useMemo(() => {
     if (!query.trim()) return [];
     const cedQ = normCedula(query);
-    return pacientes.filter((r) => {
+    return pacientesAll.filter((r) => {
       if (cedQ.length >= 4 && normCedula(r.cedula).includes(cedQ)) return true;
       return fuzzyMatch(query, r.nombre);
     });
@@ -204,7 +346,7 @@ export default function App() {
             <p className="text-slate-300 text-sm sm:text-base mt-3 max-w-lg mx-auto">
               Ingresa el nombre, apellido o cédula. Buscamos incluso si el nombre fue escrito de forma diferente.
             </p>
-            <p className="text-slate-400 text-xs mt-2">{pacientes.length} registros de {new Set(pacientes.map(p => p.hospital)).size} hospitales</p>
+            <p className="text-slate-400 text-xs mt-2">{pacientesAll.length} registros de {new Set(pacientesAll.map(p => p.hospital)).size} hospitales</p>
           </header>
 
           {/* Buscador */}
