@@ -773,14 +773,45 @@ export default function App() {
 
   useEffect(() => { setPage(1); }, [query]);
 
+  const allRecords = useMemo(() => [...pacientesAll, ...comunidad], [comunidad]);
+
   const filtered = useMemo(() => {
     if (!query.trim()) return [];
     const cedQ = normCedula(query);
-    return pacientesAll.filter((r) => {
+    return allRecords.filter((r) => {
       if (cedQ.length >= 4 && normCedula(r.cedula).includes(cedQ)) return true;
       return fuzzyMatch(query, r.nombre);
     });
-  }, [query]);
+  }, [query, allRecords]);
+
+  const handleSubmitComunidad = () => {
+    if (!formText.trim() || !formHospital.trim()) return;
+    const parsed = parseSubmission(formText, formHospital.trim());
+    const results = parsed.map(p => {
+      const cedMatch = p.cedula && allRecords.some(r => normCedula(r.cedula) === p.cedula && r.cedula);
+      const nameMatch = allRecords.find(r => {
+        const dist = levenshtein(
+          phoneticNorm(p.nombre.toLowerCase()),
+          phoneticNorm(r.nombre.toLowerCase())
+        );
+        return dist === 0;
+      });
+      if (cedMatch) return { ...p, status: "exacto", match: allRecords.find(r => normCedula(r.cedula) === p.cedula) };
+      if (nameMatch) return { ...p, status: "posible", match: nameMatch };
+      return { ...p, status: "nuevo" };
+    });
+    const nuevos = results.filter(r => r.status === "nuevo").map(p => ({
+      id: Date.now() + Math.random(), nombre: p.nombre, cedula: p.cedula,
+      edad: p.edad, hospital: p.hospital, fuente: "Aporte comunidad", notas: "", estado: ""
+    }));
+    if (nuevos.length) {
+      const updated = [...comunidad, ...nuevos];
+      setComunidad(updated);
+      localStorage.setItem("comunidad", JSON.stringify(updated));
+    }
+    setFormResult(results);
+    setFormText("");
+  };
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const pageData = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -802,9 +833,17 @@ export default function App() {
         </div>
         <button
           onClick={() => setTab(tab === "buscar" ? "sitios" : "buscar")}
-          className="text-xs text-slate-400 hover:text-white transition-colors"
+          className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full transition-all ${
+            tab === "buscar"
+              ? "bg-red-600 text-white hover:bg-red-500"
+              : "bg-slate-700 text-slate-200 hover:bg-slate-600"
+          }`}
         >
-          {tab === "buscar" ? "Otros recursos →" : "← Buscador"}
+          {tab === "buscar" ? (
+            <><span>🔗</span> Otros sitios de ayuda</>
+          ) : (
+            <><span>🔍</span> Volver al buscador</>
+          )}
         </button>
       </nav>
 
@@ -835,6 +874,65 @@ export default function App() {
                 />
               </div>
             </div>
+          </div>
+
+          {/* Formulario comunidad */}
+          <div className="max-w-2xl mx-auto px-4 mt-3">
+            {!formOpen ? (
+              <button
+                onClick={() => setFormOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-slate-400 text-slate-300 text-sm hover:border-white hover:text-white transition-colors"
+              >
+                <Plus size={15} /> ¿Tienes una lista de pacientes? Ayúdanos a completarla
+              </button>
+            ) : (
+              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 text-slate-900">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-semibold text-sm">Agregar pacientes</p>
+                  <button onClick={() => { setFormOpen(false); setFormResult(null); }} className="text-slate-400 hover:text-slate-600 text-xs">Cerrar</button>
+                </div>
+                <p className="text-xs text-slate-500 mb-3">Un paciente por línea: <span className="font-mono">Nombre Apellido - Cédula - Edad</span> (la cédula y edad son opcionales)</p>
+                <input
+                  value={formHospital}
+                  onChange={e => setFormHospital(e.target.value)}
+                  placeholder="Hospital *"
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-red-600"
+                />
+                <textarea
+                  value={formText}
+                  onChange={e => setFormText(e.target.value)}
+                  rows={5}
+                  placeholder={"María González - 12.345.678 - 45 años\nJuan Rodríguez - 24 años\nPedro Pérez"}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-600"
+                />
+                <button
+                  onClick={handleSubmitComunidad}
+                  disabled={!formText.trim() || !formHospital.trim()}
+                  className="mt-2 w-full bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-40"
+                >
+                  Enviar lista
+                </button>
+                {formResult && (
+                  <div className="mt-3 space-y-1.5 max-h-48 overflow-y-auto">
+                    {formResult.map((r, i) => (
+                      <div key={i} className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 ${
+                        r.status === "exacto" ? "bg-amber-50 border border-amber-200" :
+                        r.status === "posible" ? "bg-blue-50 border border-blue-200" :
+                        "bg-emerald-50 border border-emerald-200"
+                      }`}>
+                        {r.status === "nuevo" ? <CheckCircle size={13} className="text-emerald-600 mt-0.5 shrink-0" /> : <AlertCircle size={13} className="text-amber-500 mt-0.5 shrink-0" />}
+                        <div>
+                          <span className="font-medium">{r.nombre}</span>
+                          {r.status === "exacto" && <span className="text-amber-700"> — ya existe en {r.match?.hospital}</span>}
+                          {r.status === "posible" && <span className="text-blue-700"> — posible duplicado: "{r.match?.nombre}" en {r.match?.hospital}</span>}
+                          {r.status === "nuevo" && <span className="text-emerald-700"> — guardado</span>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Resultados */}
