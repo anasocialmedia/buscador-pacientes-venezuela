@@ -1,34 +1,20 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Search, ExternalLink, MapPin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ExternalLink, MapPin, ChevronLeft, ChevronRight, Plus, CheckCircle, AlertCircle } from "lucide-react";
 
 // ---------- helpers ----------
 const stripAccents = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
 
-// Phonetic normalization for Venezuelan name variations
-const phoneticNorm = (s = "") => {
-  return stripAccents(s)
-    .toLowerCase()
-    .replace(/ph/g, "f")        // sophia → sofia
-    .replace(/th/g, "t")        // elizabeth → elizabet
-    .replace(/ck/g, "k")
-    .replace(/qu/g, "k")        // keila → keila
-    .replace(/z/g, "s")         // zofia → sofia
-    .replace(/v/g, "b")         // viviana → bibiana
-    .replace(/y/g, "i")         // yolanda → iolanda
-    .replace(/j/g, "h")         // jose → hose (loose)
-    .replace(/x/g, "s")         // xavier → savier
-    .replace(/ll/g, "i")        // guillermo → guiermo
-    .replace(/h/g, "")          // silent h
-    .replace(/(.)\1+/g, "$1")   // double letters → single
-    .replace(/[^a-z0-9\s]/g, "")
-    .trim()
-    .replace(/\s+/g, " ");
-};
+const phoneticNorm = (w = "") =>
+  stripAccents(w).toLowerCase()
+    .replace(/ph/g, "f").replace(/th/g, "t")
+    .replace(/z/g, "s").replace(/v/g, "b")
+    .replace(/y/g, "i").replace(/ll/g, "i")
+    .replace(/h/g, "").replace(/(.)\1+/g, "$1")
+    .replace(/[^a-z0-9]/g, "");
 
 const normCedula = (s = "") => (s || "").replace(/[^\d]/g, "");
 const fmtCedula = (c) => (c ? c.replace(/(\d)(?=(\d{3})+$)/g, "$1.") : "—");
 
-// Levenshtein distance for fuzzy matching
 function levenshtein(a, b) {
   const m = a.length, n = b.length;
   const dp = Array.from({ length: m + 1 }, (_, i) => [i, ...Array(n).fill(0)]);
@@ -39,24 +25,47 @@ function levenshtein(a, b) {
   return dp[m][n];
 }
 
+// Improved search: no false positives from stopwords/single-char tokens
 function fuzzyMatch(query, target) {
-  if (!query) return true;
-  const qNorm = phoneticNorm(query);
-  const tNorm = phoneticNorm(target);
-  // Exact or contains
-  if (tNorm.includes(qNorm) || qNorm.includes(tNorm)) return true;
-  // Word-level matching: each query word must match at least one target word
-  const qWords = qNorm.split(" ").filter(Boolean);
-  const tWords = tNorm.split(" ").filter(Boolean);
-  return qWords.every(qw =>
-    tWords.some(tw => {
-      if (tw.includes(qw) || qw.includes(tw)) return true;
-      const maxLen = Math.max(qw.length, tw.length);
-      if (maxLen < 4) return qw === tw;
-      const dist = levenshtein(qw, tw);
-      return dist <= Math.floor(maxLen * 0.3); // 30% tolerance
-    })
-  );
+  if (!query) return false;
+  const qClean = stripAccents(query).toLowerCase().trim();
+  const tClean = stripAccents(target).toLowerCase().trim();
+
+  // 1. Direct substring (fastest, no phonetic distortion)
+  if (tClean.includes(qClean)) return true;
+
+  // 2. Word-level — filter stopwords (≤ 2 chars)
+  const qWords = qClean.split(/\s+/).filter(w => w.length >= 3);
+  const tWords = tClean.split(/\s+/).filter(w => w.length >= 3);
+  if (!qWords.length || !tWords.length) return false;
+
+  return qWords.every(qw => {
+    const qwP = phoneticNorm(qw);
+    return tWords.some(tw => {
+      const twP = phoneticNorm(tw);
+      // Prefix: "sofi" matches "sofia"
+      if (twP.startsWith(qwP) || qwP.startsWith(twP)) return true;
+      // Phonetic contains
+      if (twP.includes(qwP)) return true;
+      // Fuzzy distance — only for words ≥ 4 chars each, max 1 error per 4 chars
+      if (qwP.length >= 4 && twP.length >= 4) {
+        const maxLen = Math.max(qwP.length, twP.length);
+        return levenshtein(qwP, twP) <= Math.max(1, Math.floor(maxLen / 4));
+      }
+      return false;
+    });
+  });
+}
+
+// Parser for community submissions
+function parseSubmission(text, hospital) {
+  return text.split("\n").map(l => l.trim()).filter(Boolean).map(line => {
+    const parts = line.split(/[-–,|]/);
+    const nombre = stripAccents(parts[0] || "").trim();
+    const cedula = normCedula(parts[1] || "");
+    const edad = (parts[2] || "").trim();
+    return { nombre, cedula, edad, hospital };
+  }).filter(p => p.nombre.length > 1);
 }
 
 let idCounter = 1;
@@ -432,8 +441,309 @@ const catia = [
   mk("Benites Karli", "", "43 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
 ];
 
+// ── Hospital Dr. Domingo Luciani (El Llanito, Caracas) ──
+// Fuente: múltiples listas pegadas en paredes del hospital, 25–26/06/26
+const H_LUCIANI = "Hospital Dr. Domingo Luciani (El Llanito)";
+const luciani = [
+  // ── Quirofano 26/06/26 1:00pm ──
+  mk("Gismeli Moreno", "", "31 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Ruit Dannis", "", "41 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Cabarcas Yendeli", "", "13 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Leon Darealin", "", "24 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Fernandez Emily", "", "26 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Jesús Epoide", "", "30 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Marrupe Ariana", "", "37 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Bruces Saul", "", "26 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Trujillo Etian", "", "19 años", H_LUCIANI, "Quirofano / UCI 26/06/26", ""),
+  mk("Fuentes Alberto", "", "32 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Padion Douglas", "", "20 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Ramirez Jose", "", "27 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Carvelo Maria", "", "16 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Landi Sebastian", "", "7 años", H_LUCIANI, "Quirofano / Pediatría 26/06/26", "Sec: Quirofano y Pediatría"),
+  mk("Fernandez Emile", "", "", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Bolivar Yoscaili", "", "", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Velazquez Lidis", "", "", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Guarine Giren", "", "", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Hernandez Rey", "", "", H_LUCIANI, "Quirofano 26/06/26", ""),
+  // ── Politrauma Emergencia V. 26/06 01:00pm ──
+  mk("Blanco Jesica", "", "53 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("González Alexandra", "", "42 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Goncalve Luci", "", "61 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Cardozo Carla", "", "25 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Mayorica Jesus", "", "26 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Requena Dilia", "", "56 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Vega Maria", "", "54 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Hernandez Francisco", "", "62 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  mk("Castañeda Maria", "", "65 años", H_LUCIANI, "Politrauma Emerg. V. 26/06/26", ""),
+  // ── Poli Emergencia Nueva ──
+  mk("Vasquez Gladys", "", "72 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Vieira Mario", "", "74 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Hernandez Deiby", "", "46 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Acevedo Jorge", "", "70 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Viera Jose", "", "41 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Orihuela Liana", "", "31 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("De Castillo Luci", "", "48 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Galis Yaleska", "", "23 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Maubios Vasquez", "", "18 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Jesus Rodriguez", "", "28 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Tania Cecis", "", "62 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("González Yailyn", "", "26 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Baras Esmeralda", "", "59 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Balas Laura", "", "22 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Isquierdo Henriques", "", "38 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Exarle Doria", "", "13 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Jesus Gucareiro", "", "44 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Fernandez Yoskeidy", "", "35 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Sandoval Nelly", "", "63 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Decape Yolande", "", "88 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Ramirez Nauroby", "", "32 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Salazar Helen", "", "23 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Gonzalez Carlos", "", "11 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Boada Evelyn", "", "54 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Roda Aleida", "", "71 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Isabel Vegas", "", "54 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Estefani Acevedo", "", "37 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  // ── Trauma Vieja ──
+  mk("Stiven Sanchez", "", "24 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Yessica Aponte", "", "19 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Anyi Perez", "", "45 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Isabel Vega", "", "50 años", H_LUCIANI, "Trauma Vieja 26/06/26", "Proc: La Guaira"),
+  mk("Joseph Miranda", "", "24 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Victoria Caridad", "", "29 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Camila Arellano", "", "17 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Erelin Boada", "", "54 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Yuliany Mora", "", "52 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Astrid Mendez", "", "38 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Janet Anhalabi", "", "23 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Mahmud Anhalabi", "", "56 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Catalina Sanchez", "", "64 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  // ── Politrauma Emergencia Vieja ──
+  mk("Iaskara Castillo", "", "28 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Blanco Carmen", "", "55 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Castañeda Maria", "", "43 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Da Silva Engerberth", "", "21 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Da Silva Antonio", "", "19 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Grealito Yoseani", "", "32 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Vequiola Mauro", "", "55 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Galvi Yanieska", "", "33 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", "", "De alta"),
+  mk("Tania Celis", "", "62 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Antonella Marin", "", "17 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Nohemy Marrero", "", "20 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  mk("Arias Frank", "", "18 años", H_LUCIANI, "Politrauma Emerg. Vieja 26/06/26", ""),
+  // ── Sala de Parto ──
+  mk("Ramirez Quintana", "", "32 años", H_LUCIANI, "Sala de Parto 26/06/26", ""),
+  mk("Nairoby Ramirez", "", "", H_LUCIANI, "Sala de Parto 26/06/26", ""),
+  // ── Terapia ──
+  mk("Liscano Pedro", "", "46 años", H_LUCIANI, "Terapia 26/06/26", "Proc: Chacaito"),
+  mk("Edis Tania", "", "62 años", H_LUCIANI, "Terapia 26/06/26", "Proc: La Guaira"),
+  mk("Trujillo Meriam", "", "19 años", H_LUCIANI, "Terapia 26/06/26", "Proc: La Guaira"),
+  mk("Torres Milagros", "", "46 años", H_LUCIANI, "Terapia / UCI 26/06/26", "Proc: La Guaira"),
+  // ── UCI 26/06/26 1:00pm ──
+  mk("Pedro Ascano", "", "40 años", H_LUCIANI, "UCI 26/06/26", ""),
+  mk("Sebastian Dormeicimiento", "", "16 años", H_LUCIANI, "UCI 26/06/26", "nombre incierto en original"),
+  mk("Milagros Torres", "", "46 años", H_LUCIANI, "UCI 26/06/26", ""),
+  mk("Emely Fernandez", "", "", H_LUCIANI, "UCI 26/06/26", ""),
+  mk("Discamo Pedro", "", "46 años", H_LUCIANI, "UCI 26/06/26", ""),
+  mk("Salasar Arturo", "", "13 años", H_LUCIANI, "UCI 26/06/26", ""),
+  // ── Pediatría 26/06/26 ──
+  mk("Ana Hildert", "", "4 años", H_LUCIANI, "Pediatría 26/06/26", "Proc: La Guaira"),
+  mk("Yinderli Cavarea", "", "13 años", H_LUCIANI, "Pediatría 26/06/26", "Proc: La Guaira"),
+  mk("Bradian Garcia", "", "8 años", H_LUCIANI, "Pediatría 26/06/26", "Proc: La Guaira"),
+  mk("Miel Frontado", "", "7 años", H_LUCIANI, "Pediatría 26/06/26", "Proc: La Guaira"),
+  mk("Victoria Castillo", "", "10 años", H_LUCIANI, "Pediatría 26/06/26", "Proc: La Guaira"),
+  mk("Yoscarli Bolivar", "", "12 años", H_LUCIANI, "Pediatría 26/06/26", "Proc: La Guaira"),
+  mk("Yenderlin Calbaiga", "", "", H_LUCIANI, "Pediatría Emerg. 26/06/26", "nombre incierto en original"),
+  // ── Lista Actualizada Pacientes del Sismo 25/06/26 02:00pm ──
+  mk("Cabarca Yenderlin", "", "13 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Quirofano"),
+  mk("Cordova Arnaldo", "", "19 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Quirofano"),
+  mk("Fernandez Neisy", "", "38 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Jimenez Axel", "", "4 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Arrieta Joris", "", "65 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Quirofano"),
+  mk("Martinez Jesus", "", "7 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Martinez Isaac", "", "10 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Quirofano"),
+  mk("Ramirez Gabriela", "", "37 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Parra Gabriela", "", "15 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Castillo Luci", "", "42 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Barreto Ricardo", "", "41 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Garrto Yoscanny", "", "39 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Jercel Rey", "", "29 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Landers Sebastian", "", "31 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Salazar Arturo", "", "13 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Castano Donna", "", "12 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Gonzalez Valeri", "", "10 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Padilla Rodoski", "", "4 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Fendi Sebastian", "", "7 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Chacon Carlos", "", "13 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Demon Lenin", "", "10 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Ruda Anderson", "", "9 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Silva Joandali", "", "9 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Silva Yoaiber", "", "7 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Guzman Paola", "", "17 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Garcia Vega Jano", "", "", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Martinez Johan", "", "10 años", H_LUCIANI, "Lista actualizada 25/06/26", "Sec: Pediatría"),
+  mk("Bosparte Ronny", "", "33 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Castañeda Maria", "", "73 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Ramirez José", "", "37 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Acosta Hasael", "", "13 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Vasquez Luis", "", "77 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Parra Estefania", "", "15 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Delgado Edimer", "", "23 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Ibarra Ana", "", "74 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Torralba Nuvia", "", "68 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("García Yenny", "", "34 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Vilchez Brayan", "", "23 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Fuentes Alberto", "", "52 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Perez Francisca", "", "63 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Marabito Joseani", "", "32 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Abello Matilde", "", "36 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Rodriguez Eduardo", "", "65 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Dirita Rosa", "", "69 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Guerrero Delverson", "", "20 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Rey Sennicel", "", "29 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Rivero Daniel", "", "60 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Blanco José", "", "6 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Acosta Israel", "", "10 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Acosta Alexander", "", "47 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Abreu Paulina", "", "8 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Arrieta Doris", "", "65 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Balbueno Wilmer", "", "37 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Alayon Sohyn", "", "25 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Sequera Sofia", "", "15 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Rivas Clara", "", "62 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Rolas Tahina", "", "23 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  mk("Milano Gladuska", "", "23 años", H_LUCIANI, "Lista actualizada 25/06/26", ""),
+  // ── Lista 8:30pm ──
+  mk("Kairyn Gonzalez", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  mk("David Pedron", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  mk("Carlos Gonzalez", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  mk("Julio Suarez", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  mk("Galicia Rodes", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", "", "De alta"),
+  mk("Frank Arias", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  mk("Yenreidy Fernandez", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  mk("Yolanda Gonzalez", "", "", H_LUCIANI, "Lista 8:30pm 26/06/26", "", "De alta"),
+  mk("Santiago Carrasquel", "", "14 años", H_LUCIANI, "Lista 8:30pm 26/06/26", ""),
+  // ── Poli-Trauma (notas de pared) ──
+  mk("Yessica Blanco", "", "", H_LUCIANI, "Notas pared Politrauma", "Piso 2"),
+  mk("Diego Obregon", "", "", H_LUCIANI, "Notas pared Politrauma", "Triage Cirugía", "De alta"),
+  mk("Alexandra Gonzalez", "", "42 años", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Carina Cabrera", "", "", H_LUCIANI, "Notas pared Politrauma", "Sec: Trauma"),
+  mk("Aide Arteaga", "", "", H_LUCIANI, "Notas pared Politrauma", "Sec: Rx"),
+  mk("Carlos Castaño", "", "", H_LUCIANI, "Notas pared Politrauma", "Sec: Rx"),
+  mk("Jose Ramirez", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Rodni Bompard", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Yaiskar Castillo", "", "28 años", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Vequiole Meiro", "", "35 años", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Dasilve Engerberth", "", "21 años", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Dasilve Anthony", "", "14 años", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Maria Misel Gabriela", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Serrano Gonzalez Nancy", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Arrieta Oyola Doris", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Padron Jesus Cirilo", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Guatini Padron Efren", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Lastra Visbal Clara", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Vasconcelo Andreina", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Omar Portillo", "", "", H_LUCIANI, "Notas pared Politrauma", "Piso 2"),
+  mk("Ordaz Luisana", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Iaskara Castillo Valerio", "", "", H_LUCIANI, "Notas pared Politrauma", ""),
+  mk("Lucy de Castillo", "", "48 años", H_LUCIANI, "Notas pared Politrauma", ""),
+  // ── Listas adicionales Partes 3 y 4 ──
+  mk("Vega Samuel", "", "28 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Rondon Angel", "", "12 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Brengifo Guillernung", "", "46 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Gonzalez Olga", "", "63 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Rodoski Padilla", "", "52 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Piñero Sebastian", "", "16 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Barreto Ricardo", "", "42 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Obregon Diego", "", "14 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Cabrera Kairina", "", "30 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Lopez Haddy", "", "42 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Castaño Dana", "", "12 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Arteaga Gladys", "", "72 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Rojas Rafael", "", "50 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Gonzalez Stephany", "", "22 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Gonzalez Rafael", "", "39 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Castro Juan", "", "26 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Escalona Iris", "", "55 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Serrano Nancy", "", "67 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Romero José", "", "60 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Guapiri Efren", "", "30 años", H_LUCIANI, "Lista actualizada 26/06/26", "Piso 2"),
+  mk("Cisnero Rosa", "", "57 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Muñoz Josefina", "", "72 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Ordaz Lusana", "", "58 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Machado Anabella", "", "9 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Pedro Jesus", "", "68 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Goyo Rafael", "", "32 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  // Trauma Vieja actualizada
+  mk("Mendoza Carmen", "", "48 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Luci Valero", "", "46 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Morrufo Ariona", "", "37 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  mk("Revoredo Luis", "", "57 años", H_LUCIANI, "Trauma Vieja 26/06/26", "Piso 4"),
+  mk("Carrasquel Santiago", "", "14 años", H_LUCIANI, "Trauma Vieja 26/06/26", ""),
+  // M.I. Edif Nuevo Piso 1
+  mk("Garcia Odalis", "", "43 años", H_LUCIANI, "M.I. Edif Nuevo Piso 1 26/06/26", ""),
+  mk("Izquiel Enrique", "", "63 años", H_LUCIANI, "M.I. Edif Nuevo Piso 1 26/06/26", ""),
+  mk("Rodriguez Jesus", "", "28 años", H_LUCIANI, "M.I. Edif Nuevo Piso 1 26/06/26", ""),
+  mk("Obuber Manuel", "", "38 años", H_LUCIANI, "M.I. Edif Nuevo Piso 1 26/06/26", ""),
+  // Trauma Nuevo Piso 2
+  mk("Suarez Rene", "", "62 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Brito Yina", "", "50 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Bencomo Norguis", "", "37 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Herrea Gladika", "", "25 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Rey Jelicet", "", "29 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Iscala Yenny", "", "42 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Perez Paenyi", "", "14 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Sanchez Rosa", "", "77 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Hernandez César", "", "48 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Echarlo Leidy", "", "33 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  mk("Toralbo Nubia", "", "68 años", H_LUCIANI, "Trauma Nuevo Piso 2 26/06/26", ""),
+  // Poli Emergencia Nueva actualizada
+  mk("Guerra Rosa Pino", "", "39 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Annalza Maurina", "", "74 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  mk("Diaz Roncades Karlet", "", "82 años", H_LUCIANI, "Poli Emerg. Nueva 26/06/26", ""),
+  // Cirugía 2 Pisos
+  mk("Hilary Rodriguez", "", "32 años", H_LUCIANI, "Cirugía 2 Pisos 26/06/26", ""),
+  // Pediatría Piso 6
+  mk("Desmont Lewis", "", "10 años", H_LUCIANI, "Pediatría Piso 6 26/06/26", ""),
+  mk("Marcano Steven", "", "7 años", H_LUCIANI, "Pediatría Piso 6 26/06/26", ""),
+  mk("Arbelo Valery", "", "10 años", H_LUCIANI, "Pediatría Piso 6 26/06/26", ""),
+  mk("Yoalbis Silva", "", "7 años", H_LUCIANI, "Pediatría Piso 6 26/06/26", ""),
+  mk("Velazquez Lidice", "", "12 años", H_LUCIANI, "Pediatría Piso 6 26/06/26", ""),
+  // Quirofano actualizado
+  mk("Zamora Samy", "", "38 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Lopez William", "", "28 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Oduper Manuel", "", "38 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Palma Maria", "", "", H_LUCIANI, "Quirofano 26/06/26", ""),
+  mk("Hernandez Deiby", "", "40 años", H_LUCIANI, "Quirofano 26/06/26", ""),
+  // Pared derecha (lista con nombres sin edad)
+  mk("Sequera Blanco Sofia", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Suarez Granado René", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Blanco Briceño Carmen", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Fuente Galvis Alberto", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Garavito Espitia Yohany", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Ramirez Escalante Maiangel", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Herrero Merlano Gloduska", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Riuol Lopez Franni", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Parra Misil Gabriela", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Izquierdo Iraima", "", "83 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Albe Manuel", "", "77 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Albimar Gonzalez", "", "59 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Mendez Yesire", "", "24 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Betancourt Maria", "", "74 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Mijares Seolibeth", "", "45 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Urbina Silibeto", "", "21 años", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Bolges Liliane", "", "", H_LUCIANI, "Lista pared 26/06/26", ""),
+  mk("Rivas Frankenil", "", "53 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Portillo Omar", "", "40 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Suarez Rene", "", "62 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Caldera Lewis", "", "10 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Blanco Yessika", "", "53 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Ribas Fabina", "", "23 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Mariangel Muñon", "", "89 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+  mk("Vasconcelo Andreina", "", "42 años", H_LUCIANI, "Lista actualizada 26/06/26", ""),
+];
+
 // Merge all patient arrays
-const pacientesAll = [...pacientes, ...arvelo, ...caribia, ...catia];
+const pacientesAll = [...pacientes, ...arvelo, ...caribia, ...catia, ...luciani];
 
 const sitiosExternos = [
   { nombre: "Desaparecidos Terremoto Venezuela", url: "https://desaparecidosterremotovenezuela.com", desc: "Citado en CNN. Reporta a alguien con quien no logras contactar, o avisa cuando lo encuentres." },
@@ -453,6 +763,13 @@ export default function App() {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [tab, setTab] = useState("buscar");
+  const [formOpen, setFormOpen] = useState(false);
+  const [formText, setFormText] = useState("");
+  const [formHospital, setFormHospital] = useState("");
+  const [formResult, setFormResult] = useState(null);
+  const [comunidad, setComunidad] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("comunidad") || "[]"); } catch { return []; }
+  });
 
   useEffect(() => { setPage(1); }, [query]);
 
