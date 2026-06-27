@@ -1041,18 +1041,52 @@ export default function App() {
 
           {/* Resultados */}
           <main className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-            {!query.trim() && (
-              <div className="text-center py-16 text-slate-400">
+            {!debouncedQuery.trim() && !hospitalFilter && (
+              <div className="text-center py-12 text-slate-400">
                 <Search size={40} className="mx-auto mb-3 opacity-30" />
-                <p className="text-sm">Escribe un nombre o cédula para buscar</p>
-                <p className="text-xs mt-1 text-slate-300">También puedes filtrar por hospital arriba</p>
+                <p className="text-sm">Escribe un nombre, apellido o cédula</p>
+                <p className="text-xs mt-1 text-slate-300">También puedes hablar tocando el micrófono 🎤</p>
+                {buscados.length > 0 && (
+                  <p className="text-xs mt-3 text-amber-400">{buscados.length} persona(s) reportada(s) como no encontradas</p>
+                )}
               </div>
             )}
 
-            {query.trim() && filtered.length === 0 && (
-              <div className="text-center py-16 text-slate-400">
-                <p className="text-sm font-medium">No se encontraron coincidencias para <span className="font-bold text-slate-600">"{query}"</span></p>
-                <p className="text-xs mt-2">Intenta con otro nombre, apellido o número de cédula</p>
+            {debouncedQuery.trim() && filtered.length === 0 && (
+              <div className="max-w-md mx-auto py-8 px-4">
+                <div className="text-center mb-6 text-slate-400">
+                  <UserX size={40} className="mx-auto mb-3 opacity-40" />
+                  <p className="text-sm font-medium text-slate-600">No encontramos a <span className="font-bold">"{debouncedQuery}"</span></p>
+                  <p className="text-xs mt-1">Intenta con otro nombre, apellido o cédula</p>
+                </div>
+                <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
+                  <p className="font-semibold text-sm text-amber-900 mb-1">¿No lo encontraste?</p>
+                  <p className="text-xs text-amber-700 mb-3">Déjanos el nombre y datos de contacto. Voluntarios y personal de hospitales pueden ayudarte a localizarlo.</p>
+                  {reportSent ? (
+                    <div className="text-center py-3 text-emerald-700 font-semibold text-sm">✓ Reporte enviado. Te contactaremos si hay novedades.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      <input value={reportForm.nombre} onChange={e => setReportForm(f => ({...f, nombre: e.target.value}))}
+                        placeholder="Nombre completo del familiar *"
+                        className="w-full px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <input value={reportForm.edad} onChange={e => setReportForm(f => ({...f, edad: e.target.value}))}
+                          placeholder="Edad aproximada"
+                          className="px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                        <input value={reportForm.ultimaUbicacion} onChange={e => setReportForm(f => ({...f, ultimaUbicacion: e.target.value}))}
+                          placeholder="Última ubicación conocida"
+                          className="px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                      </div>
+                      <input value={reportForm.contacto} onChange={e => setReportForm(f => ({...f, contacto: e.target.value}))}
+                        placeholder="Tu teléfono o WhatsApp para contactarte"
+                        className="w-full px-3 py-2.5 rounded-xl border border-amber-200 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-400" />
+                      <button onClick={submitReporte} disabled={!reportForm.nombre.trim()}
+                        className="w-full bg-amber-500 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-amber-600 disabled:opacity-40 active:scale-95 transition-all">
+                        Reportar como no encontrado
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

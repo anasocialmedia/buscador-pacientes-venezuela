@@ -1,0 +1,12 @@
+{
+  "name": "Buscador de Pacientes · Sismo Venezuela",
+  "short_name": "Pacientes VE",
+  "description": "Busca a tu familiar hospitalizado tras el sismo del 24/06/2026",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0d12",
+  "theme_color": "#0b0d12",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
