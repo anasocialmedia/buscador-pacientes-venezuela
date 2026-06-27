@@ -295,12 +295,12 @@ const caribia = [
   mk("Vélez Mayuri", "12717904", "51 años", H_CARIBIA, "Pizarra ingresados 25/06/26", "Proc: Caraballeda · 8pm"),
   mk("Tohormes Adsony", "12866403", "50 años", H_CARIBIA, "Pizarra ingresados 25/06/26", "Proc: Caribe · 8pm"),
   mk("Borges Mariela", "9855570", "57 años", H_CARIBIA, "Pizarra ingresados 25/06/26", "Proc: Caribe · 8pm"),
-  mk("Escobar Cleiuer", "27552520", "28 años", H_CARIBIA, "Pizarra ingresados 25/06/26", "Proc: Cdad. Caribia · 8pm"),
+  mk("Escobar Cleiver", "27552520", "28 años", H_CARIBIA, "Pizarra ingresados 25/06/26", "Proc: Cdad. Caribia · 8pm"),
   mk("Dávila Anabella", "31439901", "13 años", H_CARIBIA, "Pizarra ingresados 25/06/26", "Proc: Los Corales · CI con prefijo M en original · 8pm"),
   // Traslados 26/06/26 (pizarra 2) — fueron trasladados a otro centro
-  mk("Suárez Claret", "10471600", "75 años", H_CARIBIA, "Pizarra traslados 26/06/26", "Traslado a Hospital Militar · 8:30am", "Traslado"),
+  mk("Suárez Claret", "6471600", "75 años", H_CARIBIA, "Pizarra traslados 26/06/26", "Traslado a Hospital Militar · 8:30am", "Traslado"),
   mk("Mayor Eduardo", "16091866", "41 años", H_CARIBIA, "Pizarra traslados 26/06/26", "Traslado a Hospital Militar · 8:30am", "Traslado"),
-  mk("Santos Carlos", "3405495", "73 años", H_CARIBIA, "Pizarra traslados 26/06/26", "Traslado a CDD Los Mercedes · 12:19pm", "Traslado"),
+  mk("Santos Carlos", "3405475", "73 años", H_CARIBIA, "Pizarra traslados 26/06/26", "Traslado a CDD Los Mercedes · 12:19pm", "Traslado"),
   mk("Aguilar Alfredo", "10487289", "57 años", H_CARIBIA, "Pizarra traslados 26/06/26", "Traslado a CDD Los Mercedes · 12:19pm", "Traslado"),
   // Altas por mejoría 26/06/26 (pizarra 2)
   mk("Valeria de la Oz", "29521698", "25 años", H_CARIBIA, "Pizarra altas 26/06/26", "Alta 8:57am", "De alta"),
