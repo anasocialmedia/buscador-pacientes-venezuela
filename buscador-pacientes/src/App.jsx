@@ -376,7 +376,7 @@ const catia = [
   mk("Yismar Quintona", "", "3 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
   mk("Marlene Teran", "", "6 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
   mk("Lopez Neiber", "", "22 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
-  mk("Jomeht Seville", "", "49 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
+  mk("Janeht Seville", "", "49 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
   mk("Abreu Isabel", "", "36 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
   mk("Perdomo Yoiner", "", "32 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
   mk("Patricia Mondiole", "", "51 años", H_CATIA, "Lista manuscrita adicional", "Dx: Trauma"),
