@@ -1,5 +1,5 @@
-import React, { useState, useMemo, useEffect } from "react";
-import { Search, ExternalLink, MapPin, ChevronLeft, ChevronRight, Plus, CheckCircle, AlertCircle } from "lucide-react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { Search, ExternalLink, MapPin, ChevronLeft, ChevronRight, Plus, CheckCircle, AlertCircle, X, Copy, Mic, MicOff, UserX } from "lucide-react";
 
 // ---------- helpers ----------
 const stripAccents = (s = "") => s.normalize("NFD").replace(/[̀-ͯ]/g, "");
@@ -761,28 +761,110 @@ const PAGE_SIZE = 40; // 4 columnas × 10 filas
 // ============================================================================
 export default function App() {
   const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [hospitalFilter, setHospitalFilter] = useState(null);
   const [page, setPage] = useState(1);
   const [tab, setTab] = useState("buscar");
-  const [formOpen, setFormOpen] = useState(false);
+  const [copied, setCopied] = useState(null);
+  const [listening, setListening] = useState(false);
+  const [buscados, setBuscados] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("buscados") || "[]"); } catch { return []; }
+  });
+  const [reportForm, setReportForm] = useState({ nombre: "", edad: "", ultimaUbicacion: "", contacto: "" });
+  const [reportSent, setReportSent] = useState(false);
+
+  const startVoice = useCallback(() => {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) return alert("Tu navegador no soporta búsqueda por voz. Intenta con Chrome.");
+    const rec = new SR();
+    rec.lang = "es-VE";
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.onstart = () => setListening(true);
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+    rec.onresult = (e) => setQuery(e.results[0][0].transcript);
+    rec.start();
+  }, []);
+
+  const submitReporte = () => {
+    if (!reportForm.nombre.trim()) return;
+    const nuevo = { ...reportForm, id: Date.now(), fecha: new Date().toLocaleDateString("es-VE") };
+    const updated = [...buscados, nuevo];
+    setBuscados(updated);
+    localStorage.setItem("buscados", JSON.stringify(updated));
+    setReportForm({ nombre: "", edad: "", ultimaUbicacion: "", contacto: "" });
+    setReportSent(true);
+    setTimeout(() => setReportSent(false), 3000);
+  };
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 220);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  const copyCard = useCallback((r) => {
+    const txt = [
+      `*${r.nombre}*`,
+      `Hospital: ${r.hospital}`,
+      r.cedula ? `CI: ${fmtCedula(r.cedula)}` : null,
+      r.edad ? `Edad: ${r.edad === "menor" || parseInt(r.edad) < 18 ? "Menor de edad" : r.edad}` : null,
+      r.notas || null,
+    ].filter(Boolean).join("\n");
+    navigator.clipboard?.writeText(txt).then(() => {
+      setCopied(r.id);
+      setTimeout(() => setCopied(null), 1800);
+    });
+  }, []);
+
   const [formText, setFormText] = useState("");
   const [formHospital, setFormHospital] = useState("");
   const [formResult, setFormResult] = useState(null);
   const [comunidad, setComunidad] = useState(() => {
     try { return JSON.parse(localStorage.getItem("comunidad") || "[]"); } catch { return []; }
   });
+  const [encontrados, setEncontrados] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("encontrados") || "[]")); } catch { return new Set(); }
+  });
 
-  useEffect(() => { setPage(1); }, [query]);
+  const toggleEncontrado = (id) => {
+    setEncontrados(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      localStorage.setItem("encontrados", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
+  useEffect(() => { setPage(1); }, [debouncedQuery, hospitalFilter]);
 
   const allRecords = useMemo(() => [...pacientesAll, ...comunidad], [comunidad]);
+  const hospitales = useMemo(() => [...new Set(allRecords.map(r => r.hospital))].sort(), [allRecords]);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return [];
-    const cedQ = normCedula(query);
-    return allRecords.filter((r) => {
+    const q = debouncedQuery.trim();
+    const cedQ = normCedula(q);
+    let pool = hospitalFilter ? allRecords.filter(r => r.hospital === hospitalFilter) : allRecords;
+    if (!q) return hospitalFilter ? pool.slice(0, PAGE_SIZE) : [];
+
+    const matches = pool.filter(r => {
       if (cedQ.length >= 4 && normCedula(r.cedula).includes(cedQ)) return true;
-      return fuzzyMatch(query, r.nombre);
+      return fuzzyMatch(q, r.nombre);
     });
-  }, [query, allRecords]);
+
+    // Sort: exact match first, then starts-with, then contains, then fuzzy
+    const qLow = stripAccents(q).toLowerCase();
+    return matches.sort((a, b) => {
+      const score = r => {
+        const n = stripAccents(r.nombre).toLowerCase();
+        if (n === qLow) return 4;
+        if (n.startsWith(qLow)) return 3;
+        if (n.includes(qLow)) return 2;
+        return 1;
+      };
+      return score(b) - score(a);
+    });
+  }, [debouncedQuery, hospitalFilter, allRecords]);
 
   const handleSubmitComunidad = () => {
     if (!formText.trim() || !formHospital.trim()) return;
@@ -857,75 +939,97 @@ export default function App() {
             <p className="text-slate-300 text-sm sm:text-base mt-3 max-w-lg mx-auto">
               Ingresa el nombre, apellido o cédula. Buscamos incluso si el nombre fue escrito de forma diferente.
             </p>
-            <p className="text-slate-400 text-xs mt-2">{pacientesAll.length} registros de {new Set(pacientesAll.map(p => p.hospital)).size} hospitales</p>
+            <p className="text-slate-400 text-xs mt-2">
+              {allRecords.length} registros · {hospitales.length} hospitales
+              {encontrados.size > 0 && <span className="text-emerald-400"> · {encontrados.size} ya con familiar ✓</span>}
+            </p>
           </header>
 
           {/* Buscador */}
           <div className="max-w-2xl mx-auto px-4 -mt-8 relative z-10">
-            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-3">
+            <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-3 space-y-2">
               <div className="relative">
                 <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Buscar por nombre, apellido o cédula…"
-                  className="w-full pl-12 pr-4 py-3.5 rounded-xl border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-red-600 bg-slate-50"
+                  placeholder="Nombre, apellido o cédula…"
+                  className="w-full pl-12 pr-10 py-3.5 rounded-xl border border-slate-200 text-base focus:outline-none focus:ring-2 focus:ring-red-600 bg-slate-50"
                   autoFocus
                 />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                  {query && (
+                    <button onClick={() => setQuery("")} className="text-slate-400 hover:text-slate-700 p-0.5">
+                      <X size={16} />
+                    </button>
+                  )}
+                  <button
+                    onClick={startVoice}
+                    title="Buscar por voz"
+                    className={`p-1 rounded-full transition-all ${listening ? "text-red-500 animate-pulse" : "text-slate-400 hover:text-red-500"}`}
+                  >
+                    {listening ? <MicOff size={18} /> : <Mic size={18} />}
+                  </button>
+                </div>
+              </div>
+              {/* Filtro por hospital */}
+              <div className="flex gap-1.5 flex-wrap pb-0.5">
+                <button
+                  onClick={() => setHospitalFilter(null)}
+                  className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors ${!hospitalFilter ? "bg-slate-800 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                >Todos</button>
+                {hospitales.map(h => (
+                  <button key={h}
+                    onClick={() => setHospitalFilter(h === hospitalFilter ? null : h)}
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium transition-colors truncate max-w-[180px] ${hospitalFilter === h ? "bg-red-600 text-white" : "bg-slate-100 text-slate-500 hover:bg-slate-200"}`}
+                  >{h}</button>
+                ))}
               </div>
             </div>
           </div>
 
-          {/* Formulario comunidad */}
-          <div className="max-w-2xl mx-auto px-4 mt-3">
-            {!formOpen ? (
-              <button
-                onClick={() => setFormOpen(true)}
-                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-slate-400 text-slate-300 text-sm hover:border-white hover:text-white transition-colors"
-              >
-                <Plus size={15} /> ¿Tienes una lista de pacientes? Ayúdanos a completarla
-              </button>
-            ) : (
-              <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 text-slate-900">
-                <div className="flex items-center justify-between mb-3">
-                  <p className="font-semibold text-sm">Agregar pacientes</p>
-                  <button onClick={() => { setFormOpen(false); setFormResult(null); }} className="text-slate-400 hover:text-slate-600 text-xs">Cerrar</button>
-                </div>
-                <p className="text-xs text-slate-500 mb-3">Un paciente por línea: <span className="font-mono">Nombre Apellido - Cédula - Edad</span> (la cédula y edad son opcionales)</p>
+          {/* Formulario comunidad — siempre visible, mobile-first */}
+          <div className="max-w-2xl mx-auto px-4 mt-4 pb-2">
+            <div className="bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden">
+              <div className="bg-slate-50 border-b border-slate-100 px-4 py-3">
+                <p className="font-semibold text-slate-800 text-sm">¿Tienes información de pacientes?</p>
+                <p className="text-xs text-slate-500 mt-0.5">Pega la lista aquí y la agregamos al buscador para todos. La cédula y la edad son opcionales, pero si las tienes, agrégalas — cuantos más datos, mejor.</p>
+              </div>
+              <div className="p-4 space-y-3">
                 <input
                   value={formHospital}
                   onChange={e => setFormHospital(e.target.value)}
-                  placeholder="Hospital *"
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm mb-2 focus:outline-none focus:ring-2 focus:ring-red-600"
+                  placeholder="Hospital o centro de salud"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-colors"
                 />
                 <textarea
                   value={formText}
                   onChange={e => setFormText(e.target.value)}
-                  rows={5}
-                  placeholder={"María González - 12.345.678 - 45 años\nJuan Rodríguez - 24 años\nPedro Pérez"}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-red-600"
+                  rows={4}
+                  placeholder={"Un paciente por línea:\nMaría González - 12.345.678\nJuan Rodríguez - 45 años\nPedro Pérez"}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm bg-slate-50 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-colors resize-none leading-relaxed"
                 />
                 <button
                   onClick={handleSubmitComunidad}
                   disabled={!formText.trim() || !formHospital.trim()}
-                  className="mt-2 w-full bg-red-600 text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-700 disabled:opacity-40"
+                  className="w-full bg-red-600 text-white py-3 rounded-xl text-sm font-bold tracking-wide hover:bg-red-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
                   Enviar lista
                 </button>
                 {formResult && (
-                  <div className="mt-3 space-y-1.5 max-h-48 overflow-y-auto">
+                  <div className="space-y-1.5 max-h-44 overflow-y-auto">
                     {formResult.map((r, i) => (
-                      <div key={i} className={`flex items-start gap-2 text-xs rounded-lg px-3 py-2 ${
+                      <div key={i} className={`flex items-start gap-2 text-xs rounded-xl px-3 py-2.5 ${
                         r.status === "exacto" ? "bg-amber-50 border border-amber-200" :
                         r.status === "posible" ? "bg-blue-50 border border-blue-200" :
                         "bg-emerald-50 border border-emerald-200"
                       }`}>
-                        {r.status === "nuevo" ? <CheckCircle size={13} className="text-emerald-600 mt-0.5 shrink-0" /> : <AlertCircle size={13} className="text-amber-500 mt-0.5 shrink-0" />}
+                        {r.status === "nuevo" ? <CheckCircle size={14} className="text-emerald-600 mt-0.5 shrink-0" /> : <AlertCircle size={14} className="text-amber-500 mt-0.5 shrink-0" />}
                         <div>
-                          <span className="font-medium">{r.nombre}</span>
-                          {r.status === "exacto" && <span className="text-amber-700"> — ya existe en {r.match?.hospital}</span>}
-                          {r.status === "posible" && <span className="text-blue-700"> — posible duplicado: "{r.match?.nombre}" en {r.match?.hospital}</span>}
-                          {r.status === "nuevo" && <span className="text-emerald-700"> — guardado</span>}
+                          <span className="font-semibold">{r.nombre}</span>
+                          {r.status === "exacto" && <span className="text-amber-700"> · ya registrado en {r.match?.hospital}</span>}
+                          {r.status === "posible" && <span className="text-blue-700"> · posible duplicado de "{r.match?.nombre}"</span>}
+                          {r.status === "nuevo" && <span className="text-emerald-700"> · agregado</span>}
                         </div>
                       </div>
                     ))}
@@ -941,6 +1045,7 @@ export default function App() {
               <div className="text-center py-16 text-slate-400">
                 <Search size={40} className="mx-auto mb-3 opacity-30" />
                 <p className="text-sm">Escribe un nombre o cédula para buscar</p>
+                <p className="text-xs mt-1 text-slate-300">También puedes filtrar por hospital arriba</p>
               </div>
             )}
 
@@ -959,28 +1064,50 @@ export default function App() {
                 </p>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {pageData.map((r) => (
-                    <div key={r.id} className="bg-white rounded-xl border border-slate-200 p-4 flex flex-col gap-2 shadow-sm hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="font-semibold text-sm leading-tight">{r.nombre}</p>
-                        {r.estado && (
-                          <span className={`shrink-0 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            /defunci|fallec/i.test(r.estado) ? "bg-red-100 text-red-700"
-                            : /alta/i.test(r.estado) ? "bg-emerald-100 text-emerald-700"
-                            : "bg-blue-100 text-blue-700"
-                          }`}>{r.estado}</span>
-                        )}
-                      </div>
-                      <div className="text-xs text-slate-500 space-y-1">
-                        <p className="flex items-center gap-1"><MapPin size={10} className="shrink-0" /> {r.hospital}</p>
-                        <div className="flex gap-3">
-                          <span><span className="text-slate-400">CI:</span> <span className="font-mono">{fmtCedula(r.cedula) !== "—" ? fmtCedula(r.cedula) : "—"}</span></span>
-                          {r.edad && <span><span className="text-slate-400">Edad:</span> {r.edad === "menor" || parseInt(r.edad) < 18 ? "Menor de edad" : r.edad}</span>}
+                  {pageData.map((r) => {
+                    const hallado = encontrados.has(r.id);
+                    return (
+                      <div key={r.id} className={`rounded-xl border p-4 flex flex-col gap-2 shadow-sm transition-all ${hallado ? "bg-emerald-50 border-emerald-300" : "bg-white border-slate-200 hover:shadow-md"}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <p className={`font-semibold text-sm leading-tight ${hallado ? "text-emerald-800" : ""}`}>{r.nombre}</p>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {r.estado && (
+                              <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                                /defunci|fallec/i.test(r.estado) ? "bg-red-100 text-red-700"
+                                : /alta/i.test(r.estado) ? "bg-emerald-100 text-emerald-700"
+                                : "bg-blue-100 text-blue-700"
+                              }`}>{r.estado}</span>
+                            )}
+                              <button
+                              onClick={() => copyCard(r)}
+                              title="Copiar para WhatsApp"
+                              className="w-7 h-7 rounded-full flex items-center justify-center bg-slate-100 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-all active:scale-90"
+                            >
+                              {copied === r.id ? <CheckCircle size={13} className="text-emerald-500" /> : <Copy size={13} />}
+                            </button>
+                            <button
+                              onClick={() => toggleEncontrado(r.id)}
+                              title={hallado ? "Desmarcar" : "Ya está con un familiar"}
+                              className={`w-7 h-7 rounded-full flex items-center justify-center transition-all active:scale-90 ${hallado ? "bg-emerald-500 text-white" : "bg-slate-100 text-slate-400 hover:bg-emerald-100 hover:text-emerald-600"}`}
+                            >
+                              <CheckCircle size={15} />
+                            </button>
+                          </div>
                         </div>
-                        {r.notas && <p className="text-amber-700 leading-snug">{r.notas}</p>}
+                        {hallado && (
+                          <p className="text-[11px] font-semibold text-emerald-700">✓ Ya está con un familiar</p>
+                        )}
+                        <div className="text-xs text-slate-500 space-y-1">
+                          <p className="flex items-center gap-1"><MapPin size={10} className="shrink-0" /> {r.hospital}</p>
+                          <div className="flex gap-3">
+                            <span><span className="text-slate-400">CI:</span> <span className="font-mono">{fmtCedula(r.cedula) !== "—" ? fmtCedula(r.cedula) : "—"}</span></span>
+                            {r.edad && <span><span className="text-slate-400">Edad:</span> {r.edad === "menor" || parseInt(r.edad) < 18 ? "Menor de edad" : r.edad}</span>}
+                          </div>
+                          {r.notas && <p className="text-amber-700 leading-snug">{r.notas}</p>}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Paginación */}
